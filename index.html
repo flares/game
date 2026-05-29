@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Divya Gatha — Epic Adventures for Kids</title>
+  <meta name="description" content="Divya Gatha — beautiful story-games from the Ramayana and Mahabharata for children. Fly with Hanumanthudu, build Ramudu's bridge, and learn focus with Arjunudu." />
+  <meta name="theme-color" content="#1a1140" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icon-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Divya Gatha" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="stage-wrap">
+    <canvas id="game"></canvas>
+  </div>
+
+  <div id="rotate-hint" aria-hidden="true">
+    <div class="rh-card">
+      <div class="rh-emoji">🙏</div>
+      <div class="rh-title">Hold your phone upright</div>
+      <div class="rh-sub">Divya Gatha plays best in portrait mode</div>
+    </div>
+  </div>
+
+  <noscript>
+    <div style="position:fixed;inset:0;display:grid;place-items:center;background:#1a1140;color:#ffd98a;font-family:sans-serif;text-align:center;padding:24px;">
+      Please enable JavaScript to play Divya Gatha.
+    </div>
+  </noscript>
+
+  <!-- Engine + systems (ordered, classic scripts → global DG namespace) -->
+  <script src="js/engine.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/scene_home.js"></script>
+  <script src="js/game_hanuman.js"></script>
+  <script src="js/game_setu.js"></script>
+  <script src="js/game_arjuna.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "Divya Gatha — Epic Adventures",
+  "short_name": "Divya Gatha",
+  "description": "Beautiful story-games from the Ramayana and Mahabharata for children. Fly with Hanumanthudu, build Ramudu's bridge, and learn focus with Arjunudu.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "portrait",
+  "background_color": "#1a1140",
+  "theme_color": "#1a1140",
+  "lang": "en",
+  "categories": ["games", "education", "kids"],
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
