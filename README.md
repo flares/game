@@ -42,6 +42,21 @@ around the home temple.
 
 ---
 
+## Also in this repo: 🪔 A Light in the Ashoka Grove · అభయం  *(Sundara Kāṇḍa)*
+
+A separate, **standalone PWA** living in [`ashoka-grove/`](ashoka-grove/) — a
+contemplative, single-screen **night search**. Guide tiny **Bala Hanumanthudu**
+with a joystick across a moonlit, fog-veiled maze of ponds, lotuses and bridges
+to a grieving **Sitamma** under her tree. His little **lamp** lights the way —
+but it **wakes the sleeping rakshasis**; pause and say **Rāma-nāma** and a wider,
+**safe aura** reveals the path. Gather Rama's keepsakes and the **chūḍāmaṇi**,
+don't startle Sitamma, **toss her the jewel** so she knows you are no illusion of
+Ravana — then Hanuman **grows great** and hope dawns. A **new board every visit**.
+It has its own installable manifest/service-worker (served at `/ashoka-grove/`).
+See [`ashoka-grove/GAME_DESIGN.md`](ashoka-grove/GAME_DESIGN.md).
+
+---
+
 ## Install it on your phone (PWA)
 
 The game is served over HTTPS so it can be **installed to your home screen** and
@@ -103,6 +118,13 @@ game/
     ├── game_setu.js        # Game 2
     ├── game_arjuna.js      # Game 3
     └── main.js             # registry, flow, bootstrap
+
+ashoka-grove/                # standalone PWA — A Light in the Ashoka Grove
+├── index.html  styles.css  manifest.webmanifest  service-worker.js
+├── GAME_DESIGN.md           # full Phase-1 gameplay spec
+├── assets/                  # generated icons (+ generate_icons.py)
+├── tools/                   # headless render + smoke harness (node-canvas)
+└── js/  engine.js  audio.js  storage.js  art_grove.js  ui_grove.js  grove.js  main.js
 ```
 
 *Jai Shri Ram. 🙏*

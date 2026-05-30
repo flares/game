@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>A Light in the Ashoka Grove — అభయం</title>
+  <meta name="description" content="A contemplative moonlit mini-game: guide little Bala Hanumanthudu across the Ashoka grove to Sitamma, light the way without waking the rakshasis, and carry Rama's chudamani to her." />
+  <meta name="theme-color" content="#0a0a24" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/icon-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Ashoka Grove" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="stage-wrap">
+    <canvas id="game"></canvas>
+  </div>
+
+  <div id="rotate-hint" aria-hidden="true">
+    <div class="rh-card">
+      <div class="rh-emoji">🪔</div>
+      <div class="rh-title">Hold your phone upright</div>
+      <div class="rh-sub">The grove is best walked in portrait</div>
+    </div>
+  </div>
+
+  <noscript>
+    <div style="position:fixed;inset:0;display:grid;place-items:center;background:#0a0a24;color:#ffd98a;font-family:sans-serif;text-align:center;padding:24px;">
+      Please enable JavaScript to enter the Ashoka grove.
+    </div>
+  </noscript>
+
+  <!-- Engine + systems (ordered, classic scripts → global DG namespace) -->
+  <script src="js/engine.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/art_grove.js"></script>
+  <script src="js/ui_grove.js"></script>
+  <script src="js/grove.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

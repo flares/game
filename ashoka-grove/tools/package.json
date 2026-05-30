@@ -1,0 +1,12 @@
+{
+  "name": "ashoka-grove-tools",
+  "private": true,
+  "description": "Headless render + smoke harness for A Light in the Ashoka Grove",
+  "scripts": {
+    "smoke": "node smoke.js",
+    "render": "node render.js"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2"
+  }
+}
