@@ -24,8 +24,8 @@
   const SITA_S = 0.72;          // ~4 cells
   const HERO_R = 11;            // collision radius
   const SPEED = 158;            // px/s at full joystick
-  const LAMP_MOVE = 116, LAMP_PRAY = 44;
-  const AURA_BASE = 188;        // + keepsakes widen it
+  const LAMP_MOVE = 44, LAMP_PRAY = 20;   // ~5x5 cells (lamp you navigate by)
+  const AURA_BASE = 70;                    // ~8x8 cells (the safe Rama-nama aura)
   const PRAY_AFTER = 2.2;       // seconds still before Rama-nama
   const SITA_ZONE = 224;        // approach radius
   const WAKE_RATE = 0.85, WAKE_DECAY = 0.55, WAKE_STIR = 0.6, WAKE_FULL = 1.0;
@@ -41,69 +41,74 @@
     const start = { x: cx(4), y: cy(74) };
     const sita = { x: cx(38), y: cy(11) };
 
-    // --- main trail (guarantees solvability) ---
-    const pts = [start];
-    const n = 4;
-    for (let i = 1; i < n; i++) {
-      const tt = i / n;
-      const bx = U.lerp(start.x, sita.x, tt) + (rnd() - 0.5) * 200;
-      const by = U.lerp(start.y, sita.y, tt) + (rnd() - 0.5) * 120;
-      pts.push({ x: U.clamp(bx, 60, W - 60), y: U.clamp(by, 90, H - 90) });
-    }
-    pts.push(sita);
-    // densify into a polyline
+    // token positions chosen FIRST, so corridors can be carved to reach them
+    const pick = (xMin, xMax, yMin, yMax) => ({ x: U.clamp(U.rand(xMin, xMax), 56, W - 56), y: U.clamp(U.rand(yMin, yMax), 120, H - 90) });
+    const keepsakes = [
+      Object.assign(pick(120, W - 90, H * 0.60, H * 0.78), { kind: "ring", got: false }),
+      Object.assign(pick(80, W - 90, H * 0.38, H * 0.56), { kind: "blossom", got: false }),
+      Object.assign(pick(120, W - 90, H * 0.18, H * 0.34), { kind: "leaf", got: false }),
+    ];
+    const chud = Object.assign(pick(W * 0.42, W - 90, 150, H * 0.30), { got: false });
+
+    // --- corridor network (guarantees solvability AND gives branches to explore) ---
     const trailPts = [];
-    for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i], b = pts[i + 1];
-      const segLen = U.dist(a.x, a.y, b.x, b.y);
-      const steps = Math.max(2, Math.floor(segLen / 8));
-      for (let k = 0; k <= steps; k++) trailPts.push({ x: U.lerp(a.x, b.x, k / steps), y: U.lerp(a.y, b.y, k / steps) });
+    function carve(a, b, jX, jY, nWp) {
+      const pts = [a]; nWp = nWp || 3;
+      for (let i = 1; i < nWp; i++) {
+        const tt = i / nWp;
+        pts.push({ x: U.clamp(U.lerp(a.x, b.x, tt) + (rnd() - 0.5) * jX, 50, W - 50), y: U.clamp(U.lerp(a.y, b.y, tt) + (rnd() - 0.5) * jY, 84, H - 64) });
+      }
+      pts.push(b);
+      for (let i = 0; i < pts.length - 1; i++) {
+        const p0 = pts[i], p1 = pts[i + 1], L = U.dist(p0.x, p0.y, p1.x, p1.y), steps = Math.max(2, Math.floor(L / 8));
+        for (let k = 0; k <= steps; k++) trailPts.push({ x: U.lerp(p0.x, p1.x, k / steps), y: U.lerp(p0.y, p1.y, k / steps) });
+      }
     }
-    // stamp trail corridor (~2.5 cells wide) as forced-walkable + tagged
-    const TR = 1.6 * CELL;
+    carve(start, sita, 230, 150, 4);                 // a main winding route
+    carve(start, sita, 280, 170, 5);                 // a second, different route
+    let prev = start;                                // a chain threading the tokens
+    for (const tk of [keepsakes[0], keepsakes[1], keepsakes[2], chud]) { carve(prev, tk, 120, 90, 2); prev = tk; }
+    carve(chud, sita, 150, 90, 2);
+
+    // stamp corridors (narrower → more maze), tagged as forced-walkable
+    const TR = 1.35 * CELL;
     for (const p of trailPts) {
       const g0x = Math.max(0, Math.floor((p.x - TR) / CELL)), g1x = Math.min(GW - 1, Math.floor((p.x + TR) / CELL));
       const g0y = Math.max(0, Math.floor((p.y - TR) / CELL)), g1y = Math.min(GH - 1, Math.floor((p.y + TR) / CELL));
-      for (let gy = g0y; gy <= g1y; gy++) for (let gx = g0x; gx <= g1x; gx++) {
-        if (U.dist(cx(gx), cy(gy), p.x, p.y) <= TR) { trail[idx(gx, gy)] = 1; }
-      }
+      for (let gy = g0y; gy <= g1y; gy++) for (let gx = g0x; gx <= g1x; gx++)
+        if (U.dist(cx(gx), cy(gy), p.x, p.y) <= TR) trail[idx(gx, gy)] = 1;
     }
 
     const far = (x, y, r) => U.dist(x, y, start.x, start.y) > r && U.dist(x, y, sita.x, sita.y) > r;
 
-    // --- ponds ---
+    // --- ponds (denser) ---
     const ponds = [], bridges = [];
-    const nP = rint(4, 6);
     let tries = 0;
-    while (ponds.length < nP && tries < 80) {
+    const nP = rint(7, 10);
+    while (ponds.length < nP && tries < 160) {
       tries++;
-      const px = U.rand(110, W - 110), py = U.rand(180, H - 160);
-      const rx = U.rand(5, 8) * CELL, ry = U.rand(3.4, 5.4) * CELL;
-      if (!far(px, py, 150)) continue;
-      let overlap = false;
-      for (const q of ponds) if (U.dist(px, py, q.x, q.y) < (rx + q.rx) * 0.9) { overlap = true; break; }
-      if (overlap) continue;
+      const px = U.rand(100, W - 100), py = U.rand(170, H - 150);
+      const rx = U.rand(4.5, 8.5) * CELL, ry = U.rand(3.2, 5.6) * CELL;
+      if (!far(px, py, 140)) continue;
+      if (ponds.some((q) => U.dist(px, py, q.x, q.y) < (rx + q.rx) * 0.82)) continue;
       const pond = { x: px, y: py, rx, ry, seed: rint(1, 9999) };
       ponds.push(pond);
-      // block water cells, but never the trail
       const g0x = Math.max(0, Math.floor((px - rx) / CELL)), g1x = Math.min(GW - 1, Math.floor((px + rx) / CELL));
       const g0y = Math.max(0, Math.floor((py - ry) / CELL)), g1y = Math.min(GH - 1, Math.floor((py + ry) / CELL));
       for (let gy = g0y; gy <= g1y; gy++) for (let gx = g0x; gx <= g1x; gx++) {
         const dx = (cx(gx) - px) / rx, dy = (cy(gy) - py) / ry;
         if (dx * dx + dy * dy <= 1 && !trail[idx(gx, gy)]) walk[idx(gx, gy)] = 0;
       }
-      // bridge where the trail crosses this pond
-      const inside = trailPts.filter((p) => { const dx = (p.x - px) / rx, dy = (p.y - py) / ry; return dx * dx + dy * dy <= 1.02; });
+      const inside = trailPts.filter((p) => { const dx = (p.x - px) / rx, dy = (p.y - py) / ry; return dx * dx + dy * dy <= 1.04; });
       if (inside.length > 1) {
-        const a = inside[0], b = inside[inside.length - 1];
-        // extend a touch onto each shore
-        const ang = Math.atan2(b.y - a.y, b.x - a.x);
-        bridges.push({ x0: a.x - Math.cos(ang) * 10, y0: a.y - Math.sin(ang) * 10, x1: b.x + Math.cos(ang) * 10, y1: b.y + Math.sin(ang) * 10 });
+        const a = inside[0], b = inside[inside.length - 1], ang = Math.atan2(b.y - a.y, b.x - a.x);
+        bridges.push({ x0: a.x - Math.cos(ang) * 12, y0: a.y - Math.sin(ang) * 12, x1: b.x + Math.cos(ang) * 12, y1: b.y + Math.sin(ang) * 12 });
       }
     }
 
-    // --- hedges & rocks (maze texture; never on trail) ---
+    // --- hedges & rocks (denser maze walls; never on a corridor) ---
     const hedges = [], rocks = [];
+    const onWater = (x, y) => ponds.some((p) => { const dx = (x - p.x) / p.rx, dy = (y - p.y) / p.ry; return dx * dx + dy * dy <= 1.1; });
     const blockBlob = (x, y, rCells) => {
       const r = rCells * CELL;
       const g0x = Math.max(0, Math.floor((x - r) / CELL)), g1x = Math.min(GW - 1, Math.floor((x + r) / CELL));
@@ -111,45 +116,34 @@
       for (let gy = g0y; gy <= g1y; gy++) for (let gx = g0x; gx <= g1x; gx++)
         if (U.dist(cx(gx), cy(gy), x, y) <= r && !trail[idx(gx, gy)]) walk[idx(gx, gy)] = 0;
     };
-    const onWater = (x, y) => ponds.some((p) => { const dx = (x - p.x) / p.rx, dy = (y - p.y) / p.ry; return dx * dx + dy * dy <= 1.1; });
-    for (let i = 0; i < rint(5, 8); i++) {
-      const x = U.rand(80, W - 80), y = U.rand(160, H - 150);
-      if (!far(x, y, 130) || onWater(x, y)) continue;
-      const s = U.rand(20, 32); hedges.push({ x, y, s, seed: rint(1, 9999) }); blockBlob(x, y, s / CELL * 0.8);
-    }
-    for (let i = 0; i < rint(3, 6); i++) {
-      const x = U.rand(80, W - 80), y = U.rand(160, H - 150);
+    for (let i = 0; i < rint(9, 13); i++) {
+      const x = U.rand(70, W - 70), y = U.rand(150, H - 140);
       if (!far(x, y, 120) || onWater(x, y)) continue;
-      const s = U.rand(14, 22); rocks.push({ x, y, s, seed: rint(1, 9999) }); blockBlob(x, y, s / CELL * 0.6);
+      const s = U.rand(18, 30); hedges.push({ x, y, s, seed: rint(1, 9999) }); blockBlob(x, y, s / CELL * 0.78);
+    }
+    for (let i = 0; i < rint(6, 10); i++) {
+      const x = U.rand(70, W - 70), y = U.rand(150, H - 140);
+      if (!far(x, y, 110) || onWater(x, y)) continue;
+      const s = U.rand(13, 21); rocks.push({ x, y, s, seed: rint(1, 9999) }); blockBlob(x, y, s / CELL * 0.6);
     }
 
-    // --- BFS distance from start (connectivity + placement helper) ---
-    const sCell = { gx: Math.floor(start.x / CELL), gy: Math.floor(start.y / CELL) };
+    // --- BFS distance from start (placement + safety) ---
     const dist = new Int32Array(GW * GH).fill(-1);
-    const q = [idx(sCell.gx, sCell.gy)]; dist[q[0]] = 0;
+    const q = [idx(Math.floor(start.x / CELL), Math.floor(start.y / CELL))]; dist[q[0]] = 0;
     let head = 0;
     while (head < q.length) {
-      const c = q[head++]; const gx = c % GW, gy = (c / GW) | 0;
-      const nb = [[1, 0], [-1, 0], [0, 1], [0, -1]];
-      for (const d of nb) {
+      const c = q[head++], gx = c % GW, gy = (c / GW) | 0;
+      for (const d of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
         const nx = gx + d[0], ny = gy + d[1];
         if (nx < 0 || ny < 0 || nx >= GW || ny >= GH) continue;
         const ni = idx(nx, ny);
         if (walk[ni] && dist[ni] < 0) { dist[ni] = dist[c] + 1; q.push(ni); }
       }
     }
-    // safety: trail cells are walkable by construction, so goal is reachable.
-
-    const walkAt = (x, y) => {
-      const gx = Math.floor(x / CELL), gy = Math.floor(y / CELL);
-      if (gx < 1 || gy < 1 || gx >= GW - 1 || gy >= GH - 1) return false;
-      return walk[idx(gx, gy)] === 1;
-    };
+    const walkAt = (x, y) => { const gx = Math.floor(x / CELL), gy = Math.floor(y / CELL); if (gx < 1 || gy < 1 || gx >= GW - 1 || gy >= GH - 1) return false; return walk[idx(gx, gy)] === 1; };
     const reachable = (x, y) => { const gx = Math.floor(x / CELL), gy = Math.floor(y / CELL); return gx >= 0 && gy >= 0 && gx < GW && gy < GH && dist[idx(gx, gy)] >= 0; };
-
-    // helper to find a reachable walkable spot near a target band
     const spot = (xMin, xMax, yMin, yMax, awayFrom, minAway) => {
-      for (let i = 0; i < 200; i++) {
+      for (let i = 0; i < 240; i++) {
         const x = U.rand(xMin, xMax), y = U.rand(yMin, yMax);
         if (!walkAt(x, y) || !reachable(x, y) || onWater(x, y)) continue;
         if (awayFrom && awayFrom.some((a) => U.dist(x, y, a.x, a.y) < minAway)) continue;
@@ -158,58 +152,39 @@
       return { x: U.clamp((xMin + xMax) / 2, 40, W - 40), y: U.clamp((yMin + yMax) / 2, 40, H - 40) };
     };
 
-    // --- keepsakes (3), spread across the journey ---
-    const kinds = ["ring", "blossom", "leaf"];
-    const keepsakes = [
-      Object.assign(spot(120, W - 80, H * 0.58, H * 0.80), { kind: kinds[0], got: false }),
-      Object.assign(spot(80, W - 80, H * 0.34, H * 0.58), { kind: kinds[1], got: false }),
-      Object.assign(spot(120, W - 80, H * 0.16, H * 0.36), { kind: kinds[2], got: false }),
-    ];
-
-    // --- chudamani: last third, near (but not on) Sita, more guarded ---
-    const chud = Object.assign(spot(W * 0.36, W - 90, 150, H * 0.30, [sita], 130), { got: false });
-
-    // --- rakshasis (female, sleeping), scattered, biased near the trail ---
+    // --- rakshasis (more of them; biased onto/near the corridors) ---
     const rak = [];
-    const avoid = [start, sita].concat(keepsakes);
-    const nR = rint(6, 8);
+    const nR = rint(8, 11);
     tries = 0;
-    while (rak.length < nR && tries < 300) {
+    while (rak.length < nR && tries < 400) {
       tries++;
-      const x = U.rand(70, W - 70), y = U.rand(150, H - 130);
+      const x = U.rand(64, W - 64), y = U.rand(140, H - 120);
       if (!walkAt(x, y) || !reachable(x, y) || onWater(x, y)) continue;
-      if (U.dist(x, y, start.x, start.y) < 150 || U.dist(x, y, sita.x, sita.y) < 120) continue;
-      if (rak.some((r) => U.dist(x, y, r.x, r.y) < 96)) continue;
-      // prefer spots fairly close to the trail (so they matter), but allow some
+      if (U.dist(x, y, start.x, start.y) < 140 || U.dist(x, y, sita.x, sita.y) < 110) continue;
+      if (rak.some((r) => U.dist(x, y, r.x, r.y) < 84)) continue;
       let nearTrail = Infinity;
       for (let s = 0; s < trailPts.length; s += 3) nearTrail = Math.min(nearTrail, U.dist(x, y, trailPts[s].x, trailPts[s].y));
-      if (nearTrail > 120 && rnd() > 0.4) continue;
+      if (nearTrail > 70 && rnd() > 0.5) continue;
       rak.push({ x, y, wake: 0, state: "sleep", phase: 0, facing: rnd() > 0.5 ? 1 : -1, seed: rint(1, 9999), awakeT: 0 });
     }
-    // ensure at least one guards the chudamani
-    if (!rak.some((r) => U.dist(r.x, r.y, chud.x, chud.y) < 120)) {
-      const gp = spot(chud.x - 90, chud.x + 90, chud.y - 80, chud.y + 90, [chud], 40);
+    if (!rak.some((r) => U.dist(r.x, r.y, chud.x, chud.y) < 110)) {
+      const gp = spot(chud.x - 80, chud.x + 80, chud.y - 70, chud.y + 90, [chud], 38);
       rak.push({ x: gp.x, y: gp.y, wake: 0, state: "sleep", phase: 0, facing: -1, seed: rint(1, 9999), awakeT: 0 });
     }
 
-    // decorative lotuses & lilypads on ponds
-    const lotuses = [], pads = [];
+    // --- water dressing: lotuses, lilypads, reeds, stepping stones ---
+    const lotuses = [], pads = [], reeds = [], steps = [];
     for (const p of ponds) {
-      const m = rint(1, 3);
-      for (let i = 0; i < m; i++) {
-        const a = rnd() * U.TAU, rr = rnd() * 0.7;
-        lotuses.push({ x: p.x + Math.cos(a) * p.rx * rr, y: p.y + Math.sin(a) * p.ry * rr, s: U.rand(7, 12), color: U.choose(["#ff9fc0", "#ffd0e0", "#ffb3d0"]) });
-      }
-      for (let i = 0; i < rint(1, 3); i++) {
-        const a = rnd() * U.TAU, rr = 0.4 + rnd() * 0.5;
-        pads.push({ x: p.x + Math.cos(a) * p.rx * rr, y: p.y + Math.sin(a) * p.ry * rr, s: U.rand(9, 16) });
-      }
+      for (let i = 0; i < rint(1, 3); i++) { const a = rnd() * U.TAU, rr = rnd() * 0.66; lotuses.push({ x: p.x + Math.cos(a) * p.rx * rr, y: p.y + Math.sin(a) * p.ry * rr, s: U.rand(7, 12), color: U.choose(["#ff9fc0", "#ffd0e0", "#ffb3d0"]) }); }
+      for (let i = 0; i < rint(1, 3); i++) { const a = rnd() * U.TAU, rr = 0.4 + rnd() * 0.5; pads.push({ x: p.x + Math.cos(a) * p.rx * rr, y: p.y + Math.sin(a) * p.ry * rr, s: U.rand(9, 16) }); }
+      const ra = rnd() * U.TAU;
+      for (let i = 0; i < rint(3, 6); i++) { const a = ra + (rnd() - 0.5) * 0.8; reeds.push({ x: p.x + Math.cos(a) * p.rx * 0.96, y: p.y + Math.sin(a) * p.ry * 0.96, h: U.rand(14, 26), seed: rint(1, 9999) }); }
+      if (rnd() < 0.6) for (let i = 0; i < rint(2, 4); i++) { const tt = i / 4; steps.push({ x: p.x + (tt - 0.5) * p.rx * 1.2, y: p.y + (rnd() - 0.5) * p.ry * 0.6, s: U.rand(5, 8) }); }
     }
-    // a few hanging garden lamps along the way
     const lamps = [];
-    for (let i = 0; i < 4; i++) { const sp = spot(60, W - 60, 200, H - 200); lamps.push({ x: sp.x, y: sp.y - 40 }); }
+    for (let i = 0; i < 5; i++) { const sp = spot(56, W - 56, 200, H - 200); lamps.push({ x: sp.x, y: sp.y - 40 }); }
 
-    return { walk, walkAt, reachable, start, sita, ponds, bridges, hedges, rocks, keepsakes, chud, rak, lotuses, pads, lamps, trailPts };
+    return { walk, walkAt, reachable, start, sita, ponds, bridges, hedges, rocks, keepsakes, chud, rak, lotuses, pads, reeds, steps, lamps, trailPts };
   }
 
   /* ============================ the scene ============================ */
@@ -222,10 +197,20 @@
     const flies = [];                // firefly light points
     let veilC = null, veilX = null;  // offscreen fog-of-war
     let moonVeil = 0.35;
-    let veilBase = 0.76;             // darkness over the grove (lifts at dawn)
+    let veilBase = 0.82;             // darkness over the grove (lifts at dawn)
     let note = null, noteT = 0;      // contextual toast
     let toss = null;                 // chudamani projectile during tossing
     let dawnK = 0;                   // 0..1 dawn progress
+    // subtle rotating tips at the top
+    const TIPS = [
+      "When lost, pause and pray — say “Rām” — to see further.",
+      "Your lamp is small, and it wakes the rakshasis. Move gently.",
+      "The wider aura of Rāma-nāma is safe — it wakes no one.",
+      "Gather Rama's keepsakes hidden along the way.",
+      "Find the chūḍāmaṇi, then carry it to Sitamma.",
+      "Do not startle Sitamma — toss her the jewel first.",
+    ];
+    let tipI = 0, tipT = 0; const TIP_PERIOD = 7.5;
 
     const keyVec = { x: 0, y: 0 };
     const keys = {};
@@ -259,7 +244,7 @@
       };
       flies.length = 0;
       for (let i = 0; i < 26; i++) flies.push({ x: U.rand(0, W), y: U.rand(120, H - 40), p: U.rand(0, 6.28), sp: U.rand(0.4, 1.0), r: U.rand(8, 26) });
-      dawnK = 0; veilBase = 0.76; moonVeil = 0.35; toss = null;
+      dawnK = 0; veilBase = 0.82; moonVeil = 0.35; toss = null;
     }
 
     function setSitaMood() { /* computed live in update from rakshasi commotion */ }
@@ -280,6 +265,7 @@
       stateT += dt;
       ps.update(dt);
       if (noteT > 0) { noteT -= dt; if (noteT <= 0) note = null; }
+      tipT += dt; if (tipT > TIP_PERIOD) { tipT = 0; tipI = (tipI + 1) % TIPS.length; }
       // fireflies drift
       for (const f of flies) { f.p += f.sp * dt; f.x += Math.cos(f.p) * 8 * dt; f.y += Math.sin(f.p * 0.7) * 6 * dt; }
 
@@ -330,7 +316,7 @@
       const praying = hero.pray > 0.5;
       hero.lampR = U.approach(hero.lampR, hero.moving ? LAMP_MOVE : (praying ? LAMP_PRAY : LAMP_MOVE * 0.92), dt * 240);
       hero.lampB = U.approach(hero.lampB, praying ? 0.18 : 1, dt * 3);
-      const auraTarget = hero.pray * (AURA_BASE + hero.keepsakes * 26);
+      const auraTarget = hero.pray * (AURA_BASE + hero.keepsakes * 10);
       hero.auraR = U.approach(hero.auraR, auraTarget, dt * 360);
 
       // ----- rakshasis: lamp wakes; aura does not -----
@@ -414,7 +400,7 @@
       }
       if (state === "dawn") {
         dawnK = U.clamp(dawnK + dt * 0.5, 0, 1);
-        veilBase = U.lerp(0.76, 0.12, dawnK);
+        veilBase = U.lerp(0.82, 0.12, dawnK);
         moonVeil = U.lerp(0.35, 0.05, dawnK);
         hero.scale = U.approach(hero.scale, HERO_S * 2.3, dt * 1.2);
         if (dawnK > 0.2 && U.chance(dt * 6)) ps.burst({ x: U.rand(0, W), y: U.rand(0, H * 0.7), type: "petal", color: U.choose(["#ffd0e6", "#ffe6a0", "#ffc0a3"]), speedMin: 10, speedMax: 60, life: 3, size: 7, g: 14 }, 1);
@@ -449,9 +435,11 @@
 
       // ground props (drawn, then dimmed by the veil)
       for (const p of B.ponds) Art.pond(ctx, p, DG.time, B._moonX, B._moonY);
+      for (const st of B.steps) Art.stepStone(ctx, st.x, st.y, st.s);
       for (const br of B.bridges) Art.bridge(ctx, br.x0, br.y0, br.x1, br.y1);
       for (const pd of B.pads) Art.lilypad(ctx, pd.x, pd.y, pd.s, DG.time);
       for (const lo of B.lotuses) Art.lotus(ctx, lo.x, lo.y, lo.s, DG.time, lo.color);
+      for (const rd of B.reeds) Art.reed(ctx, rd.x, rd.y, rd.h, DG.time, rd.seed);
       for (const h of B.hedges) Art.hedge(ctx, h.x, h.y, h.s, h.seed);
       for (const r of B.rocks) Art.rock(ctx, r.x, r.y, r.s, r.seed);
       for (const la of B.lamps) Art.gardenLamp(ctx, la.x, la.y, DG.time);
@@ -463,8 +451,9 @@
       // rakshasis
       for (const r of B.rak) Art.rakshasi(ctx, r.x, r.y, 0.72, DG.time, r);
 
-      // simsupa tree + Sitamma
+      // simsupa tree, the stone slab at its foot, and Sitamma seated upon it
       Art.simsupa(ctx, B.sita.x + 28, B.sita.y - 8, 120, DG.time);
+      Art.slab(ctx, B.sita.x, B.sita.y + 40, 88, 30);
       Art.sitamma(ctx, B.sita.x, B.sita.y + 18, SITA_S, DG.time, { fear: B.sita_fear || 0, recognized: B.sita_rec || 0 });
 
       // hero (skip while flying jewel handled separately)
@@ -526,6 +515,10 @@
       DG.UI.Joystick.draw(ctx);
       DG.UI.tossBtn.draw(ctx, DG.time);
       if (note) DG.UI.drawNote(ctx, note);
+      else if (state === "explore" || state === "approach") {
+        const a = U.clamp(Math.min(tipT, TIP_PERIOD - tipT), 0, 1) * 0.7;
+        if (a > 0.02) DG.UI.drawTip(ctx, TIPS[tipI], a);
+      }
 
       if (state === "intro") DG.UI.drawIntro(ctx, DG.time);
       if (state === "end") DG.UI.drawEnd(ctx, DG.time, hero.keepsakes);

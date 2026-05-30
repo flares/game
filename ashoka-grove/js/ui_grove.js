@@ -142,6 +142,20 @@
     ctx.restore();
   };
 
+  /* ---------------- subtle rotating tip (top) ---------------- */
+  UI.drawTip = function (ctx, text, alpha) {
+    ctx.save();
+    ctx.globalAlpha = U.clamp(alpha, 0, 1);
+    const y = 150, size = 21;
+    ctx.font = `500 ${size}px "Trebuchet MS", sans-serif`;
+    const tw = ctx.measureText(text).width;
+    const dx = W / 2 + 6 - tw / 2 - 16; // a tiny diya to the left of the centred text
+    DG.Art.glow(ctx, dx, y + 1, 13, "#ffcf6b", 0.45 * alpha);
+    DG.Art.diya(ctx, dx, y + 4, 4, 0.85, DG.time);
+    U.text(ctx, text, W / 2 + 6, y, { size, weight: "500", fill: "#e3e9ff", shadow: "rgba(0,0,0,0.6)", shadowBlur: 6 });
+    ctx.restore();
+  };
+
   /* ---------------- intro card ---------------- */
   UI.drawIntro = function (ctx, t) {
     ctx.save();

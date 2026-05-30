@@ -315,6 +315,52 @@
     ctx.restore();
   };
 
+  // water reeds / cattails on a shore
+  Art.reed = function (ctx, x, y, h, t, seed) {
+    const rnd = srand(seed || 5);
+    ctx.save(); ctx.translate(x, y);
+    for (let i = 0; i < 3; i++) {
+      const ox = (rnd() - 0.5) * 8, hh = h * (0.7 + rnd() * 0.5);
+      const sway = Math.sin(t * 1.4 + i + x * 0.05) * 3;
+      ctx.strokeStyle = "#2f6e44"; ctx.lineWidth = 2; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(ox, 0); ctx.quadraticCurveTo(ox + sway * 0.5, -hh * 0.6, ox + sway, -hh); ctx.stroke();
+      // cattail head
+      ctx.fillStyle = "#6b4326";
+      ctx.beginPath(); ctx.ellipse(ox + sway, -hh, 2, 5, 0, 0, U.TAU); ctx.fill();
+    }
+    ctx.restore();
+  };
+
+  // a small wet stepping stone in water
+  Art.stepStone = function (ctx, x, y, s) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = "rgba(0,0,0,0.25)"; ctx.beginPath(); ctx.ellipse(0, s * 0.4, s * 1.1, s * 0.5, 0, 0, U.TAU); ctx.fill();
+    const g = ctx.createRadialGradient(-s * 0.3, -s * 0.3, s * 0.2, 0, 0, s);
+    g.addColorStop(0, "#5a6080"); g.addColorStop(1, "#343852");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(0, 0, s, s * 0.78, 0, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "rgba(180,200,240,0.16)"; ctx.beginPath(); ctx.ellipse(-s * 0.2, -s * 0.2, s * 0.45, s * 0.3, -0.4, 0, U.TAU); ctx.fill();
+    ctx.restore();
+  };
+
+  // a carved stone slab (Sitamma's seat at the foot of the tree)
+  Art.slab = function (ctx, x, y, w, h) {
+    ctx.save(); ctx.translate(x, y);
+    ctx.fillStyle = "rgba(0,0,0,0.3)"; ctx.beginPath(); ctx.ellipse(0, h * 0.55, w * 0.62, h * 0.5, 0, 0, U.TAU); ctx.fill();
+    // front face
+    ctx.fillStyle = "#3a3d56"; U.roundRect(ctx, -w / 2, -h * 0.1, w, h * 0.7, 6); ctx.fill();
+    // top
+    const g = ctx.createLinearGradient(0, -h * 0.5, 0, 0);
+    g.addColorStop(0, "#6a6f8e"); g.addColorStop(1, "#4a4e68");
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.ellipse(0, -h * 0.1, w / 2, h * 0.32, 0, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "rgba(190,205,240,0.14)";
+    ctx.beginPath(); ctx.ellipse(-w * 0.12, -h * 0.16, w * 0.28, h * 0.16, -0.2, 0, U.TAU); ctx.fill();
+    // little moss
+    ctx.fillStyle = "rgba(60,120,80,0.4)";
+    ctx.beginPath(); ctx.arc(-w * 0.32, h * 0.18, 4, 0, U.TAU); ctx.arc(w * 0.3, h * 0.26, 3, 0, U.TAU); ctx.fill();
+    ctx.restore();
+  };
+
   /* ---------------- the simsupa bower + Sitamma ---------------- */
   // big sheltering tree at top-right
   Art.simsupa = function (ctx, x, y, s, t) {
@@ -623,18 +669,68 @@
      BALA HANUMANTHUDU — small, childlike, fully pose-animated, with a
      lamp he carries. State drives the antic; we compute joint params here.
      ===================================================================== */
+  // tall, ornate gold kireetam with a back halo arc and a red crest gem
   function crown(ctx, r) {
-    ctx.fillStyle = "#ffd24a"; ctx.strokeStyle = "#b5701a"; ctx.lineWidth = 1.2;
+    const gold = "#ffd24a", goldDk = "#cf8e22", goldLt = "#fff1b4", gem = "#e23b3b", green = "#3fae6a";
+    const band = (y0, y1) => { const g = ctx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, goldLt); g.addColorStop(0.5, gold); g.addColorStop(1, goldDk); return g; };
+    ctx.save();
+    ctx.lineJoin = "round"; ctx.strokeStyle = goldDk; ctx.lineWidth = 0.8;
+    // back halo arc (prabha)
+    ctx.strokeStyle = U.rgba(goldLt, 0.85); ctx.lineWidth = r * 0.14;
+    ctx.beginPath(); ctx.arc(0, -r * 0.18, r * 1.16, Math.PI * 1.12, Math.PI * 1.88); ctx.stroke();
+    ctx.strokeStyle = goldDk; ctx.lineWidth = r * 0.04;
+    ctx.beginPath(); ctx.arc(0, -r * 0.18, r * 1.16, Math.PI * 1.12, Math.PI * 1.88); ctx.stroke();
+    // side flares at the base
+    ctx.fillStyle = band(-r * 1.05, -r * 0.6); ctx.strokeStyle = goldDk; ctx.lineWidth = 0.8;
+    for (const sgn of [-1, 1]) {
+      ctx.beginPath();
+      ctx.moveTo(sgn * 0.74 * r, -r * 0.66);
+      ctx.quadraticCurveTo(sgn * 1.12 * r, -r * 0.82, sgn * 0.96 * r, -r * 1.06);
+      ctx.quadraticCurveTo(sgn * 0.82 * r, -r * 0.94, sgn * 0.66 * r, -r * 0.84);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+    // base band across the brow
+    ctx.fillStyle = band(-r * 1.0, -r * 0.66);
     ctx.beginPath();
-    ctx.moveTo(-r * 0.62, -r * 0.72);
-    ctx.lineTo(-r * 0.62, -r * 1.02);
-    ctx.lineTo(-r * 0.3, -r * 0.78);
-    ctx.lineTo(0, -r * 1.18);
-    ctx.lineTo(r * 0.3, -r * 0.78);
-    ctx.lineTo(r * 0.62, -r * 1.02);
-    ctx.lineTo(r * 0.62, -r * 0.72);
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = "#ff5a7a"; ctx.beginPath(); ctx.arc(0, -r * 0.86, r * 0.09, 0, U.TAU); ctx.fill();
+    ctx.moveTo(-r * 0.78, -r * 0.64); ctx.lineTo(r * 0.78, -r * 0.64);
+    ctx.lineTo(r * 0.68, -r * 0.98); ctx.lineTo(-r * 0.68, -r * 0.98); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // tier 2
+    ctx.fillStyle = band(-r * 1.34, -r * 0.96);
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.6, -r * 0.96); ctx.lineTo(r * 0.6, -r * 0.96);
+    ctx.lineTo(r * 0.44, -r * 1.34); ctx.lineTo(-r * 0.44, -r * 1.34); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // tier 3
+    ctx.fillStyle = band(-r * 1.66, -r * 1.3);
+    ctx.beginPath();
+    ctx.moveTo(-r * 0.4, -r * 1.32); ctx.lineTo(r * 0.4, -r * 1.32);
+    ctx.lineTo(r * 0.26, -r * 1.66); ctx.lineTo(-r * 0.26, -r * 1.66); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // finial dome + spire
+    ctx.fillStyle = band(-r * 2.0, -r * 1.6);
+    ctx.beginPath(); ctx.ellipse(0, -r * 1.66, r * 0.26, r * 0.18, 0, Math.PI, 0); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-r * 0.13, -r * 1.72); ctx.lineTo(r * 0.13, -r * 1.72); ctx.lineTo(0, -r * 2.12); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = gem; ctx.beginPath(); ctx.arc(0, -r * 2.12, r * 0.07, 0, U.TAU); ctx.fill();
+    // gems
+    ctx.fillStyle = gem; ctx.beginPath(); ctx.arc(0, -r * 0.82, r * 0.12, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = goldLt; ctx.beginPath(); ctx.arc(0, -r * 0.85, r * 0.04, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = green; ctx.beginPath(); ctx.arc(-r * 0.4, -r * 0.8, r * 0.06, 0, U.TAU); ctx.arc(r * 0.4, -r * 0.8, r * 0.06, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = gem; ctx.beginPath(); ctx.arc(0, -r * 1.12, r * 0.07, 0, U.TAU); ctx.fill();
+    ctx.restore();
+  }
+
+  // white flower garland (vaijayanti mala) draping the chest
+  function drawGarland(ctx) {
+    for (const sgn of [-1, 1]) {
+      for (let i = 0; i <= 7; i++) {
+        const tt = i / 7;
+        const fx = U.lerp(sgn * 7, 0, tt) + sgn * Math.sin(tt * Math.PI) * 5.5;
+        const fy = U.lerp(-15, 13, tt);
+        ctx.fillStyle = "#fff8ee"; ctx.beginPath(); ctx.arc(fx, fy, 2.0, 0, U.TAU); ctx.fill();
+        if (i % 2 === 0) { ctx.fillStyle = "#ff9ab0"; ctx.beginPath(); ctx.arc(fx, fy, 0.8, 0, U.TAU); ctx.fill(); }
+      }
+    }
+    // gold-set pendant where the strands meet
+    ctx.fillStyle = "#ffcf3f"; ctx.beginPath(); ctx.arc(0, 12, 3.4, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "#3fae6a"; ctx.beginPath(); ctx.arc(0, 12, 2.0, 0, U.TAU); ctx.fill();
   }
 
   // compute a pose from state. returns joint params in local units.
@@ -771,115 +867,159 @@
   }
 
   // x,y at the hero's ground point (feet). s scale. o = state object.
+  // The divine child Bala Hanumanthudu: cream skin, white face-fur ruff, tall
+  // gold kireetam, white garland, red dhoti + flowing scarf, tail, the lamp.
   Art.bala = function (ctx, x, y, s, t, o) {
     o = o || {};
     const P = poseFor(o, t);
     const dir = o.facing || 1;
-    const skin = "#f08a2e", skinDk = "#cf6c1c", muzzle = "#ffdca6";
+    const skin = "#f4caa0", skinDk = "#dca878", fur = "#fff8ef", hair = "#3a2416";
+    const red = "#e23b2e", redDk = "#b3281f", gold = "#ffcf3f";
     const lampBright = o.lamp == null ? 1 : o.lamp;
     const glowR = (o.glow || 1);
 
     ctx.save();
-    // ground point → hip is ~ -22 above feet
     ctx.translate(x, y - 22 * s + P.hipY * s);
     ctx.scale(s, s);
-    // devotion halo (small, soft) — grows when praying
-    Art.glow(ctx, P.headX, P.headY, (18 + (o.state === "pray" ? 10 : 0)) * glowR, "#ffe9a8", 0.4);
+    Art.glow(ctx, P.headX, P.headY, (20 + (o.state === "pray" ? 12 : 0)) * glowR, "#ffe9a8", 0.42);
 
     ctx.save();
     ctx.rotate(P.bodyRot);
     ctx.scale(dir, 1);
     ctx.translate(0, P.bodyY);
 
-    // tail (behind)
-    ctx.strokeStyle = skin; ctx.lineWidth = 7; ctx.lineCap = "round";
+    // ---- flowing red scarf (angavastram) behind both shoulders ----
+    const wav = Math.sin(t * 3) * 4;
+    for (const sgn of [-1, 1]) {
+      ctx.fillStyle = sgn < 0 ? redDk : red;
+      ctx.beginPath();
+      ctx.moveTo(sgn * 6, -14);
+      ctx.quadraticCurveTo(sgn * 28, -10 + wav, sgn * 31, 12 + wav);
+      ctx.quadraticCurveTo(sgn * 35, 32, sgn * 21, 35 - wav);
+      ctx.quadraticCurveTo(sgn * 20, 14, sgn * 11, -8);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = gold;
+      ctx.beginPath();
+      ctx.moveTo(sgn * 21, 35 - wav); ctx.quadraticCurveTo(sgn * 35, 32, sgn * 31, 12 + wav);
+      ctx.lineTo(sgn * 28, 14); ctx.quadraticCurveTo(sgn * 31, 29, sgn * 19, 32 - wav); ctx.closePath(); ctx.fill();
+    }
+
+    // ---- tail (skin w/ brown tuft) ----
+    ctx.strokeStyle = skin; ctx.lineWidth = 6; ctx.lineCap = "round";
     const tc = P.tailCurl;
     ctx.beginPath();
-    ctx.moveTo(-8, 8);
-    ctx.quadraticCurveTo(-30, 6 - tc * 20, -22, -18 - tc * 16);
-    ctx.quadraticCurveTo(-16, -34 - tc * 10, -2, -28 - tc * 8);
+    ctx.moveTo(-6, 10);
+    ctx.quadraticCurveTo(-32, 8 - tc * 22, -24, -20 - tc * 16);
+    ctx.quadraticCurveTo(-18, -40 - tc * 10, -32, -42 - tc * 8);
     ctx.stroke();
-    ctx.fillStyle = "#ffe6c0";
-    ctx.beginPath(); ctx.arc(-2, -28 - tc * 8, 4, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(-32, -42 - tc * 8, 5.5, 0, U.TAU); ctx.fill();
 
-    // back leg
-    limb(ctx, -4, 8, P.backLeg.x, P.backLeg.y, 8, skinDk, muzzle);
-    // back arm (unless praying/anjali, which draws both forward)
-    if (!P.anjali) limb(ctx, -5, -8, P.backArm.x, P.backArm.y, 7, skinDk, muzzle);
+    // back leg + back arm
+    limb(ctx, -4, 8, P.backLeg.x, P.backLeg.y, 8.5, skinDk, skin);
+    if (!P.anjali) limb(ctx, -5, -8, P.backArm.x, P.backArm.y, 7.5, skinDk, skin);
 
-    // body
+    // ---- dhoti (red + gold hem) ----
+    ctx.fillStyle = red;
+    ctx.beginPath(); ctx.moveTo(-13, 1); ctx.lineTo(13, 1); ctx.quadraticCurveTo(16, 20, 3, 22); ctx.quadraticCurveTo(-14, 22, -15, 3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = gold;
+    ctx.beginPath(); ctx.moveTo(-15, 3); ctx.quadraticCurveTo(-14, 22, 3, 22); ctx.quadraticCurveTo(16, 20, 13, 1); ctx.lineTo(10.5, 5); ctx.quadraticCurveTo(13, 18, 2, 19); ctx.quadraticCurveTo(-12, 19, -12.5, 5); ctx.closePath(); ctx.fill();
+
+    // front leg + gold anklet
+    limb(ctx, 4, 8, P.frontLeg.x, P.frontLeg.y, 8.5, skin, skin);
+    ctx.strokeStyle = gold; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(P.frontLeg.x, P.frontLeg.y, 3.6, 0, U.TAU); ctx.stroke();
+
+    // ---- torso (cream, chubby) ----
     const bg = ctx.createLinearGradient(-12, -18, 12, 14);
-    bg.addColorStop(0, skin); bg.addColorStop(1, skinDk);
+    bg.addColorStop(0, "#f8d4ac"); bg.addColorStop(1, skinDk);
     ctx.fillStyle = bg;
     ctx.beginPath(); ctx.ellipse(0, -6, 13, 16, 0, 0, U.TAU); ctx.fill();
-    // lighter belly
-    ctx.fillStyle = "#ffd9a0";
-    ctx.beginPath(); ctx.ellipse(2, -4, 7, 11, 0, 0, U.TAU); ctx.fill();
-    // little gold dhoti
-    ctx.fillStyle = "#ffcf3f";
-    ctx.beginPath(); ctx.moveTo(-11, 4); ctx.lineTo(12, 4); ctx.quadraticCurveTo(14, 16, 2, 18); ctx.quadraticCurveTo(-12, 18, -13, 6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = U.rgba("#ffffff", 0.14); ctx.beginPath(); ctx.ellipse(2, -4, 7, 10, 0, 0, U.TAU); ctx.fill();
+    // pearl belt
+    ctx.strokeStyle = "#ffe9b0"; ctx.lineWidth = 1.5; ctx.setLineDash([1.4, 1.8]);
+    ctx.beginPath(); ctx.moveTo(-12, 2); ctx.quadraticCurveTo(0, 6, 12, 2); ctx.stroke(); ctx.setLineDash([]);
+    // gold choker
+    ctx.fillStyle = gold; ctx.beginPath(); ctx.ellipse(0, -17, 7.5, 2.6, 0, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "#e23b3b"; ctx.beginPath(); ctx.arc(0, -16, 1.2, 0, U.TAU); ctx.fill();
 
-    // front leg
-    limb(ctx, 4, 8, P.frontLeg.x, P.frontLeg.y, 8, skin, muzzle);
+    // ---- white flower garland ----
+    drawGarland(ctx);
 
-    // head
+    // ---- front arm / lamp (or anjali) ----
+    if (P.anjali) {
+      limb(ctx, -5, -8, 6, -2, 7.5, skin, null);
+      limb(ctx, 5, -8, 6, -2, 7.5, skin, null);
+      ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(7, -3, 4.5, 0, U.TAU); ctx.fill();
+    } else {
+      limb(ctx, 5, -8, P.frontArm.x, P.frontArm.y, 7.5, skin, null);
+      ctx.strokeStyle = gold; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.arc(P.frontArm.x, P.frontArm.y, 3.4, 0, U.TAU); ctx.stroke();
+      drawDiya(ctx, P.frontArm.x + 2, P.frontArm.y + 2, 5, lampBright, t);
+    }
+
+    // ---- head ----
     const HX = P.headX, HY = P.headY, HR = 15;
     ctx.save();
     ctx.translate(HX, HY); ctx.rotate(P.headTilt);
-    // ears
-    ctx.fillStyle = skin;
-    ctx.beginPath(); ctx.arc(-HR * 0.92, -2, 5.5, 0, U.TAU); ctx.arc(HR * 0.92, -2, 5.5, 0, U.TAU); ctx.fill();
-    ctx.fillStyle = muzzle;
-    ctx.beginPath(); ctx.arc(-HR * 0.92, -2, 2.6, 0, U.TAU); ctx.arc(HR * 0.92, -2, 2.6, 0, U.TAU); ctx.fill();
-    // head ball
-    ctx.fillStyle = skin;
-    ctx.beginPath(); ctx.arc(0, 0, HR, 0, U.TAU); ctx.fill();
-    // muzzle
-    ctx.fillStyle = muzzle;
-    ctx.beginPath(); ctx.ellipse(4, 5, 9, 7, 0, 0, U.TAU); ctx.fill();
-    // crown
+    // white fur ruff framing the lower face (the vanara feature)
+    ctx.fillStyle = fur;
+    for (let i = 0; i <= 12; i++) {
+      const a = Math.PI * (0.06 + (i / 12) * 0.88);
+      const fx = Math.cos(a) * HR * 1.0, fy = Math.sin(a) * HR * 1.05 + 1.5;
+      ctx.beginPath(); ctx.arc(fx, fy, 4.0, 0, U.TAU); ctx.fill();
+    }
+    // dark hair tufts at the temples (under the crown)
+    ctx.fillStyle = hair;
+    ctx.beginPath(); ctx.arc(-HR * 0.96, -HR * 0.32, 5, 0, U.TAU); ctx.arc(HR * 0.96, -HR * 0.32, 5, 0, U.TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(-HR * 0.66, -HR * 0.74, 4, 0, U.TAU); ctx.arc(HR * 0.66, -HR * 0.74, 4, 0, U.TAU); ctx.fill();
+    // jhumka earrings
+    ctx.fillStyle = gold;
+    ctx.beginPath(); ctx.arc(-HR * 0.98, HR * 0.28, 2.2, 0, U.TAU); ctx.arc(HR * 0.98, HR * 0.28, 2.2, 0, U.TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(-HR * 0.98, HR * 0.52, 1.4, 0, U.TAU); ctx.arc(HR * 0.98, HR * 0.52, 1.4, 0, U.TAU); ctx.fill();
+    // face ball (cream)
+    const fg2 = ctx.createRadialGradient(-3, -3, 3, 0, 0, HR);
+    fg2.addColorStop(0, "#fbe0bf"); fg2.addColorStop(1, skin);
+    ctx.fillStyle = fg2; ctx.beginPath(); ctx.arc(0, 0, HR, 0, U.TAU); ctx.fill();
+    // rosy cheeks
+    ctx.fillStyle = U.rgba("#ff9a8a", 0.5);
+    ctx.beginPath(); ctx.arc(-6.5, 4, 3, 0, U.TAU); ctx.arc(6.5, 4, 3, 0, U.TAU); ctx.fill();
+    // crown (drawn after face base so it sits on the head)
     crown(ctx, HR);
-    // face
-    const ex = 4.5, ey = -1;
+    // eyes (big, expressive)
+    const ex = 5.2, ey = -1.5;
     if (P.blink) {
       ctx.strokeStyle = "#2a1a14"; ctx.lineWidth = 1.4; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-ex - 2, ey); ctx.lineTo(-ex + 2, ey); ctx.moveTo(ex - 2, ey); ctx.lineTo(ex + 2, ey); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-ex - 2.5, ey); ctx.quadraticCurveTo(-ex, ey + 1.6, -ex + 2.5, ey); ctx.moveTo(ex - 2.5, ey); ctx.quadraticCurveTo(ex, ey + 1.6, ex + 2.5, ey); ctx.stroke();
     } else {
       ctx.fillStyle = "#fff";
-      ctx.beginPath(); ctx.ellipse(-ex, ey, 3, 3.4, 0, 0, U.TAU); ctx.ellipse(ex, ey, 3, 3.4, 0, 0, U.TAU); ctx.fill();
-      ctx.fillStyle = "#1a1422";
-      const px = P.eyeX * 1.4, py = P.eyeY * 1.4;
-      ctx.beginPath(); ctx.arc(-ex + px, ey + py, 1.7, 0, U.TAU); ctx.arc(ex + px, ey + py, 1.7, 0, U.TAU); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-ex, ey, 3.2, 3.8, 0, 0, U.TAU); ctx.ellipse(ex, ey, 3.2, 3.8, 0, 0, U.TAU); ctx.fill();
+      const px = P.eyeX * 1.3, py = P.eyeY * 1.3;
+      ctx.fillStyle = "#4a2c14";
+      ctx.beginPath(); ctx.arc(-ex + px, ey + py, 2.1, 0, U.TAU); ctx.arc(ex + px, ey + py, 2.1, 0, U.TAU); ctx.fill();
+      ctx.fillStyle = "#1a1008";
+      ctx.beginPath(); ctx.arc(-ex + px, ey + py, 1.1, 0, U.TAU); ctx.arc(ex + px, ey + py, 1.1, 0, U.TAU); ctx.fill();
       ctx.fillStyle = "#fff";
-      ctx.beginPath(); ctx.arc(-ex + px + 0.5, ey + py - 0.6, 0.6, 0, U.TAU); ctx.arc(ex + px + 0.5, ey + py - 0.6, 0.6, 0, U.TAU); ctx.fill();
+      ctx.beginPath(); ctx.arc(-ex + px + 0.7, ey + py - 0.9, 0.7, 0, U.TAU); ctx.arc(ex + px + 0.7, ey + py - 0.9, 0.7, 0, U.TAU); ctx.fill();
+      ctx.strokeStyle = "#2a1a14"; ctx.lineWidth = 1; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.arc(-ex, ey, 3.7, Math.PI * 1.05, Math.PI * 1.7); ctx.arc(ex, ey, 3.7, Math.PI * 1.3, Math.PI * 1.95); ctx.stroke();
     }
-    // brows for awe
-    if (P.awe) {
-      ctx.strokeStyle = "#9a4a1a"; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(-ex - 2, ey - 4); ctx.lineTo(-ex + 2, ey - 5); ctx.moveTo(ex - 2, ey - 5); ctx.lineTo(ex + 2, ey - 4); ctx.stroke();
-    }
+    // brows
+    ctx.strokeStyle = hair; ctx.lineWidth = 1.1; ctx.lineCap = "round";
+    const by2 = ey - 5.4;
+    ctx.beginPath();
+    ctx.moveTo(-ex - 3, by2 + (P.awe ? 1.2 : 0)); ctx.quadraticCurveTo(-ex, by2 - 1.4, -ex + 3, by2);
+    ctx.moveTo(ex - 3, by2); ctx.quadraticCurveTo(ex, by2 - 1.4, ex + 3, by2 + (P.awe ? 1.2 : 0)); ctx.stroke();
+    // tiny nose
+    ctx.fillStyle = U.rgba(skinDk, 0.85); ctx.beginPath(); ctx.arc(0, 2.6, 1, 0, U.TAU); ctx.fill();
     // mouth
-    ctx.strokeStyle = "#9a3b2e"; ctx.fillStyle = "#7a2b22"; ctx.lineWidth = 1.4; ctx.lineCap = "round";
-    if (P.mouth === "o" || P.mouth === "awe") { ctx.beginPath(); ctx.arc(4, 9, 2.2, 0, U.TAU); ctx.fillStyle = "#6a241c"; ctx.fill(); }
-    else if (P.mouth === "yawn") { ctx.beginPath(); ctx.ellipse(4, 10, 2.6, 3.6, 0, 0, U.TAU); ctx.fillStyle = "#6a241c"; ctx.fill(); }
-    else if (P.mouth === "bashful") { ctx.beginPath(); ctx.arc(4, 7, 3, 0.1 * Math.PI, 0.9 * Math.PI); ctx.stroke(); }
-    else { ctx.beginPath(); ctx.arc(4, 7, 3.4, 0.12 * Math.PI, 0.88 * Math.PI); ctx.stroke(); }
-    // red tilak
-    ctx.fillStyle = "#e23b3b"; ctx.beginPath(); ctx.moveTo(2, -9); ctx.lineTo(0.5, -3); ctx.lineTo(3.5, -3); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#a23b2e"; ctx.lineWidth = 1.4; ctx.lineCap = "round";
+    if (P.mouth === "o" || P.mouth === "awe") { ctx.fillStyle = "#7a2b22"; ctx.beginPath(); ctx.arc(0, 7.5, 2, 0, U.TAU); ctx.fill(); }
+    else if (P.mouth === "yawn") { ctx.fillStyle = "#7a2b22"; ctx.beginPath(); ctx.ellipse(0, 8, 2.4, 3.4, 0, 0, U.TAU); ctx.fill(); }
+    else if (P.mouth === "bashful") { ctx.beginPath(); ctx.arc(0, 5.5, 2.6, 0.12 * Math.PI, 0.88 * Math.PI); ctx.stroke(); }
+    else { ctx.beginPath(); ctx.arc(0, 5, 3, 0.12 * Math.PI, 0.88 * Math.PI); ctx.stroke(); }
+    // Vaishnava tilak (vertical mark + red dot)
+    ctx.fillStyle = "#e23b2e"; ctx.beginPath(); ctx.moveTo(-1.5, -10); ctx.lineTo(1.5, -10); ctx.lineTo(0.8, -2.6); ctx.lineTo(-0.8, -2.6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#ffe7b0"; ctx.fillRect(-0.5, -9.4, 1, 5.6);
+    ctx.fillStyle = "#e23b2e"; ctx.beginPath(); ctx.arc(0, -8.6, 1.1, 0, U.TAU); ctx.fill();
     ctx.restore(); // head
-
-    // front arm / lamp. When praying → both hands in anjali (no lamp held high).
-    if (P.anjali) {
-      // hands together in front of chest
-      limb(ctx, -5, -8, 6, -2, 7, skin, null);
-      limb(ctx, 5, -8, 6, -2, 7, skin, null);
-      ctx.fillStyle = muzzle; ctx.beginPath(); ctx.arc(7, -3, 4, 0, U.TAU); ctx.fill();
-    } else {
-      // front arm carries the lamp
-      limb(ctx, 5, -8, P.frontArm.x, P.frontArm.y, 7, skin, null);
-      // the diya in his hand
-      drawDiya(ctx, P.frontArm.x + 2, P.frontArm.y + 2, 5, lampBright, t);
-    }
 
     ctx.restore(); // body (dir)
     ctx.restore(); // hero

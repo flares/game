@@ -34,13 +34,13 @@ groveShot("grove_reveal.png", (h, B) => {
 groveShot("grove_play.png", (h, B) => {
   // place hero on the trail mid-journey
   const tp = B.trailPts[Math.floor(B.trailPts.length * 0.5)];
-  h.x = tp.x; h.y = tp.y; h.state = "walk"; h.facing = 1; h.auraR = 0; h.lampB = 1; h.lampR = 116;
+  h.x = tp.x; h.y = tp.y; h.state = "walk"; h.facing = 1; h.auraR = 0; h.lampB = 1; h.lampR = 44;
 });
 
 // C) praying with aura (mid darkness) — shows the two-light mechanic
 groveShot("grove_pray.png", (h, B) => {
   const tp = B.trailPts[Math.floor(B.trailPts.length * 0.45)];
-  h.x = tp.x; h.y = tp.y; h.state = "pray"; h.pray = 1; h.auraR = 230; h.lampB = 0.2; h.lampR = 44;
+  h.x = tp.x; h.y = tp.y; h.state = "pray"; h.pray = 1; h.auraR = 100; h.lampB = 0.2; h.lampR = 20;
 });
 
 // D) frightened Sita + an awake rakshasi near her

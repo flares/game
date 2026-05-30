@@ -13,6 +13,8 @@
 
 This section is written first and in full so nothing from the brief is lost. Each item is a hard requirement.
 
+> **Revision (this session, after first playable):** the hero sprite was rebuilt as a **divine Bala Hanuman** (tall gold kireetam, fair face with white vanara fur-ruff, big eyes, Vaishnava tilak, white garland, red dhoti + flowing scarf, jhumka earrings, tail), the **map was made denser & more explorable** (a branching corridor *network* with more ponds, plank bridges, hedges, reeds and stepping stones; unlit areas read only as dim silhouettes so the path must be found), **Sitamma now sits on a carved stone slab at the foot of the tree**, the **lights were shrunk** to lamp ≈ **5×5 cells** and aura ≈ **8×8 cells**, and **subtle rotating tips** fade in at the top (e.g. *"When lost, pause and pray — say Rām — to see further."*).
+
 ### 0.1 Premise & framing
 - It is a **night search for Sitamma** under the **moon**. The goal is to **find her and give her the chūḍāmaṇi**, **then grow bigger**.
 - **One single screen** (no scrolling). The whole journey — **bottom-left → top-right** — fits on screen at once.
@@ -35,8 +37,8 @@ This section is written first and in full so nothing from the brief is lost. Eac
 
 ### 0.5 The two lights — **the core mechanic**
 Hanuman has **two distinct light ranges**:
-1. **Lamp light (real):** a **small** circle from the **diya he carries**. This is the light the player **navigates by** — you take movement decisions inside it. **The lamp WAKES rakshasis** if it falls on them.
-2. **Aura light (Rāma nāma):** when the player is **truly lost or waits patiently for a longer time**, Hanuman **sits and says Rāma nāma** (prayer/añjali) and a **larger aura circle** blooms, **exposing a bigger circle of the map**. The **aura does NOT wake rakshasis** — it is a gentle, sacred light.
+1. **Lamp light (real):** a **small** circle (≈ **5×5 cells**) from the **diya he carries**. This is the light the player **navigates by** — you take movement decisions inside it. **The lamp WAKES rakshasis** if it falls on them.
+2. **Aura light (Rāma nāma):** when the player is **truly lost or waits patiently for a longer time**, Hanuman **sits and says Rāma nāma** (prayer/añjali) and a **larger aura circle** (≈ **8×8 cells**, widening a little per keepsake) blooms, **exposing a bigger circle of the map**. The **aura does NOT wake rakshasis** — it is a gentle, sacred light.
 - The strategic loop this creates: **move briefly by the risky little lamp**, and when near sleepers or unsure, **stop and pray** for the **safe, wide** aura to scout the route, then move on. (This makes *stillness/patience* literally reveal the safe path — the contemplative lesson, made mechanical.)
 
 ### 0.6 The rakshasis — **sleeping, female, scattered**
