@@ -291,7 +291,7 @@
       if (rnd() < 0.6) for (let i = 0; i < rint(2, 4); i++) { const tt = i / 4; steps.push({ x: p.x + (tt - 0.5) * p.rx * 1.2, y: p.y + (rnd() - 0.5) * p.ry * 0.6, s: U.rand(5, 8) }); }
     }
     const lamps = [];
-    for (let i = 0; i < 5; i++) { const sp = spot(56, W - 56, 200, H - 200); lamps.push({ x: sp.x, y: sp.y - 40 }); }
+    for (let i = 0; i < 9; i++) { const sp = spot(56, W - 56, 200, H - 200); lamps.push({ x: sp.x, y: sp.y - 40 }); }
 
     return { walk, walkAt, reachable, onSafe, start, sita, ponds, bridges, hedges, rocks,
              keepsakes, chud, rak, gates, lotuses, pads, reeds, steps, lamps,
@@ -598,12 +598,13 @@
     function depthScale(y) { return U.lerp(0.72, 1.0, U.clamp(y / H, 0, 1)); }
 
     function render(ctx) {
-      // sky with dawn progression
-      Art.sky(ctx, [[0, U.mix("#0a0a24", "#2a1a3a", dawnK)], [0.45, U.mix("#141436", "#6a4a6e", dawnK)], [0.75, U.mix("#1a1a40", "#e0a06a", dawnK)], [1, U.mix("#12122e", "#ffd089", dawnK)]]);
-      Art.stars(ctx, DG.time, 70, H * 0.62);
-      Art.lankaSpires(ctx, H * 0.30, DG.time);
+      // sky — groundWash is now transparent at top, so sky/stars/spires are visible
+      Art.sky(ctx, [[0, U.mix("#060618", "#2a1a3a", dawnK)], [0.28, U.mix("#0a0a2c", "#4a2a68", dawnK)], [0.55, U.mix("#0e0e38", "#6a4a6e", dawnK)], [0.80, U.mix("#181640", "#e0a06a", dawnK)], [1, U.mix("#100e2e", "#ffd089", dawnK)]]);
       Art.groundWash(ctx);
-      Art.perspectiveGround(ctx); // subtle 3-D grid
+      Art.stars(ctx, DG.time, 90, H * 0.28);
+      Art.lankaSpires(ctx, H * 0.27, DG.time);
+      Art.perspectiveGround(ctx);
+      Art.groundPath(ctx, B.allTrailPts, TRAIL_R * 1.4); // warm earthy corridors
 
       // ground props (painter's order = top-to-bottom for depth)
       for (const p of B.ponds) Art.pond(ctx, p, DG.time, B._moonX, B._moonY);
@@ -659,13 +660,15 @@
       punch(veilX, B.sita.x, B.sita.y - 6, 96, 0.4 + (B.sita_rec || 0) * 0.5);
       for (const k of B.keepsakes) if (!k.got) punch(veilX, k.x, k.y, 16, 0.12);
       if (!B.chud.got) punch(veilX, B.chud.x, B.chud.y, 20, 0.16);
+      for (const la of B.lamps) punch(veilX, la.x, la.y + 32, 40, 0.30);
       veilX.globalCompositeOperation = "source-over";
       ctx.drawImage(veilC, 0, 0);
 
       // ---- additive light tints over veil ----
       ctx.save(); ctx.globalCompositeOperation = "lighter";
-      Art.glow(ctx, hero.x, hero.y - 16, hero.lampR * 0.9, "#ffcf6b", 0.16 * hero.lampB);
+      Art.glow(ctx, hero.x, hero.y - 16, hero.lampR * 0.9, "#ffcf6b", 0.22 * hero.lampB);
       if (hero.auraR > 4) Art.glow(ctx, hero.x, hero.y - 16, hero.auraR, "#9fd0ff", 0.10 * hero.pray);
+      for (const la of B.lamps) Art.glow(ctx, la.x, la.y + 32, 40, "#ffcf6b", 0.13);
       ctx.restore();
 
       // fireflies

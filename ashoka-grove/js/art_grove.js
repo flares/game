@@ -114,7 +114,7 @@
       const hh = 60 + rnd() * 90;
       const w = 22 + rnd() * 16;
       const g = ctx.createLinearGradient(0, baseY - hh, 0, baseY);
-      g.addColorStop(0, "rgba(120,96,60,0.55)");
+      g.addColorStop(0, "rgba(160,120,60,0.75)");
       g.addColorStop(1, "rgba(40,34,60,0.0)");
       ctx.fillStyle = g;
       ctx.beginPath();
@@ -124,9 +124,9 @@
       ctx.lineTo(x + w / 2, baseY - hh * 0.7);
       ctx.lineTo(x + w / 2, baseY);
       ctx.closePath(); ctx.fill();
-      // a faint lit window
-      ctx.fillStyle = U.rgba("#ffcf6b", 0.25 + 0.15 * Math.sin(t * 1.3 + i));
-      ctx.beginPath(); ctx.arc(x, baseY - hh * 0.55, 2.2, 0, U.TAU); ctx.fill();
+      // warm lit window
+      ctx.fillStyle = U.rgba("#ffcf6b", 0.46 + 0.18 * Math.sin(t * 1.3 + i));
+      ctx.beginPath(); ctx.arc(x, baseY - hh * 0.55, 2.8, 0, U.TAU); ctx.fill();
     }
     ctx.restore();
   };
@@ -134,10 +134,13 @@
   /* ---------------- ground ---------------- */
   // a dim night-grove floor wash
   Art.groundWash = function (ctx) {
-    const g = ctx.createLinearGradient(0, DG.H * 0.2, 0, DG.H);
-    g.addColorStop(0, "#171636");
-    g.addColorStop(0.6, "#14142f");
-    g.addColorStop(1, "#101027");
+    // transparent at top so sky/stars show; fades to dark earthy ground
+    const g = ctx.createLinearGradient(0, DG.H * 0.12, 0, DG.H);
+    g.addColorStop(0,    "rgba(18,17,46,0)");
+    g.addColorStop(0.16, "rgba(18,17,46,0.78)");
+    g.addColorStop(0.52, "#141432");
+    g.addColorStop(0.84, "#1a1528");
+    g.addColorStop(1,    "#1e1620");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, DG.W, DG.H);
   };
@@ -307,7 +310,8 @@
     ctx.strokeStyle = "rgba(180,170,140,0.4)"; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(0, -26); ctx.lineTo(0, -8); ctx.stroke();
     const fl = 0.85 + 0.15 * Math.sin(t * 8 + x);
-    Art.glow(ctx, 0, 0, 26 * fl, "#ffcf6b", 0.4);
+    Art.glow(ctx, 0, 0, 52 * fl, "#ffcf6b", 0.58);
+    Art.glow(ctx, 0, 30, 60 * fl, "#ffc050", 0.22); // warm ground pool
     ctx.fillStyle = "rgba(60,46,28,0.9)";
     U.roundRect(ctx, -7, -8, 14, 16, 4); ctx.fill();
     ctx.fillStyle = U.rgba("#ffe6a8", 0.9);
@@ -1167,6 +1171,17 @@
       ctx.fillStyle = U.choose(["#ff7a3c", "#ff9a4a", "#ff5d6c", "#ffb24a"]);
       ctx.beginPath(); ctx.arc(bx, by, 2.6 + rnd() * 1.4, 0, U.TAU); ctx.fill();
     }
+    // moonlit canopy highlights — upper blobs catch moonlight
+    ctx.save();
+    ctx.globalAlpha = 0.20;
+    ctx.fillStyle = "#4aba62";
+    ctx.beginPath();
+    blobs.slice(3, 6).forEach(b => ctx.arc(b[0] + sway, b[1], b[2] * 0.44, 0, U.TAU)); ctx.fill();
+    ctx.globalAlpha = 0.11;
+    ctx.fillStyle = "#b8f0c0";
+    ctx.beginPath();
+    blobs.slice(3, 5).forEach(b => ctx.arc(b[0] + sway, b[1] - s * 0.09, b[2] * 0.26, 0, U.TAU)); ctx.fill();
+    ctx.restore();
     ctx.restore();
   };
 
@@ -1194,23 +1209,36 @@
       ctx.fillStyle = U.choose(["#ff7a3c", "#ff9a4a", "#ff5d6c"]);
       ctx.beginPath(); ctx.arc(bx, by, 1.8 + rnd(), 0, U.TAU); ctx.fill();
     }
+    // moonlit top highlight
+    ctx.save();
+    ctx.globalAlpha = 0.22; ctx.fillStyle = "#3ea854";
+    ctx.beginPath(); ctx.arc(sway2 - 5, -s * 1.22, s * 0.30, 0, U.TAU); ctx.fill();
+    ctx.globalAlpha = 0.12; ctx.fillStyle = "#94eaa4";
+    ctx.beginPath(); ctx.arc(sway2 - 7, -s * 1.30, s * 0.16, 0, U.TAU); ctx.fill();
+    ctx.restore();
     ctx.restore();
   };
 
   /* ------------ sky clouds (big, cartoon-style, for moving layer) ------------ */
   Art.skyCloud = function (ctx, x, y, s, alpha) {
-    ctx.save(); ctx.globalAlpha = alpha == null ? 0.75 : alpha;
+    const a = alpha == null ? 0.75 : alpha;
+    ctx.save();
     const lobes = [[0, 0, 1], [-1.1, 0.22, 0.72], [1.1, 0.22, 0.72],
                    [-0.5, -0.36, 0.65], [0.52, -0.32, 0.66],
                    [1.9, 0.35, 0.44], [-1.9, 0.35, 0.44]];
-    // shadow base
-    ctx.fillStyle = "#b8cce8";
-    ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s + 5, l[2] * s, 0, U.TAU)); ctx.fill();
+    // warm amber underside — ground/fire glow reflected in cloud base
+    ctx.globalAlpha = a * 0.30;
+    ctx.fillStyle = "#d89040";
+    ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s + 9, l[2] * s, 0, U.TAU)); ctx.fill();
+    // cool blue-grey shadow
+    ctx.globalAlpha = a;
+    ctx.fillStyle = "#8ca0c4";
+    ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s + 3, l[2] * s, 0, U.TAU)); ctx.fill();
     // main body
-    ctx.fillStyle = "#e2eeff";
+    ctx.fillStyle = "#ccd8f4";
     ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s, l[2] * s, 0, U.TAU)); ctx.fill();
-    // bright highlight
-    ctx.fillStyle = "rgba(255,255,255,0.88)";
+    // bright moonlit highlight
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
     ctx.beginPath(); ctx.arc(x - 0.18 * s, y - 0.28 * s, s * 0.56, 0, U.TAU); ctx.fill();
     ctx.restore();
   };
@@ -1218,7 +1246,7 @@
   /* ------------ subtle perspective ground grid (3-D feel) ------------ */
   Art.perspectiveGround = function (ctx) {
     const vpX = DG.W * 0.5, vpY = DG.H * 0.18; // vanishing point
-    ctx.save(); ctx.globalAlpha = 0.055; ctx.strokeStyle = "#6878b0"; ctx.lineWidth = 1;
+    ctx.save(); ctx.globalAlpha = 0.07; ctx.strokeStyle = "#c89650"; ctx.lineWidth = 1;
     // converging vertical lines
     for (let i = 0; i <= 10; i++) {
       const bx = (i / 10) * DG.W;
@@ -1230,6 +1258,31 @@
       const y = vpY + (DG.H - vpY) * k;
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(DG.W, y); ctx.stroke();
     }
+    ctx.restore();
+  };
+
+  /* ------------ warm earthy path texture along corridors ------------ */
+  // Call after groundWash so corridors show warm earth when fog lifts.
+  Art.groundPath = function (ctx, pts, rad) {
+    if (!pts || !pts.length) return;
+    rad = rad || 14;
+    ctx.save();
+    // dark earthy base — richer brown than the blue-indigo ground
+    ctx.globalAlpha = 0.54;
+    ctx.fillStyle = "#3a2010";
+    ctx.beginPath();
+    for (let i = 0; i < pts.length; i += 3) {
+      ctx.arc(pts[i].x, pts[i].y, rad, 0, U.TAU);
+    }
+    ctx.fill();
+    // warm sandy highlight
+    ctx.globalAlpha = 0.26;
+    ctx.fillStyle = "#7a5028";
+    ctx.beginPath();
+    for (let i = 1; i < pts.length; i += 4) {
+      ctx.arc(pts[i].x, pts[i].y, rad * 0.52, 0, U.TAU);
+    }
+    ctx.fill();
     ctx.restore();
   };
 
