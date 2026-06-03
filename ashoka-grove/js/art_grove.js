@@ -399,106 +399,194 @@
     ctx.restore();
   };
 
-  // Sitamma seated under the tree. o:{fear 0..1, recognized 0..1, glow}
+  // Sitamma seated under the tree — cartoon style with big expressive eyes.
+  // o:{fear 0..1, recognized 0..1}
   Art.sitamma = function (ctx, x, y, s, t, o) {
     o = o || {};
     const fear = U.clamp(o.fear || 0, 0, 1);
-    const rec = U.clamp(o.recognized || 0, 0, 1);
+    const rec  = U.clamp(o.recognized || 0, 0, 1);
     ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
-    const breathe = Math.sin(t * 1.4) * 1.2;
+    const breathe = Math.sin(t * 1.4) * 1.6;
 
-    // aura around her: pale "moon veiled by cloud", warmer with recognition,
-    // uneasy cool when frightened.
+    // aura
     const auraCol = rec > 0.05 ? U.mix("#ffd9a6", "#fff1cf", rec) : U.mix("#a9b8e8", "#8f9ad6", fear);
-    Art.glow(ctx, 0, -20, 78 + rec * 40, auraCol, 0.22 + rec * 0.3);
-    if (fear > 0.15 && rec < 0.1) {
-      // uneasy reddish unrest light around the bower
-      Art.glow(ctx, 0, -20, 90, "#7a4a6a", 0.12 * fear);
-    }
+    Art.glow(ctx, 0, -20, 90 + rec * 55, auraCol, 0.26 + rec * 0.36);
+    if (fear > 0.15 && rec < 0.1) Art.glow(ctx, 0, -20, 100, "#7a4a6a", 0.14 * fear);
 
-    // seated body — sari drape
-    const sari = rec > 0.05 ? "#ffd9b0" : "#caa9c8";
-    const sariDk = U.mix(sari, "#3a2a4a", 0.4);
-    const rg = ctx.createLinearGradient(0, -6, 0, 44);
-    rg.addColorStop(0, sari); rg.addColorStop(1, sariDk);
-    ctx.fillStyle = rg;
+    // ---- palette ----
+    const sariA   = rec > 0.05 ? "#bf3e10" : "#7a2e96";
+    const sariB   = rec > 0.05 ? "#e05a20" : "#9240b8";
+    const gold    = "#ffd050";
+    const skin    = "#ecb882", skinDk = "#c8906c";
+
+    // lower sari drape (seated)
+    const sg = ctx.createLinearGradient(0, 0, 0, 50);
+    sg.addColorStop(0, sariB); sg.addColorStop(1, sariA);
+    ctx.fillStyle = sg;
     ctx.beginPath();
-    ctx.moveTo(-20, 44);
-    ctx.quadraticCurveTo(-26, 6, -12, -10 + breathe);
-    ctx.quadraticCurveTo(0, -16 + breathe, 12, -10 + breathe);
-    ctx.quadraticCurveTo(26, 6, 20, 44);
+    ctx.moveTo(-28, 50);
+    ctx.quadraticCurveTo(-33, 12, -14, -2 + breathe * 0.4);
+    ctx.quadraticCurveTo(0, -11 + breathe * 0.5, 14, -2 + breathe * 0.4);
+    ctx.quadraticCurveTo(33, 12, 28, 50);
     ctx.closePath(); ctx.fill();
-    // folded knees
-    ctx.fillStyle = sariDk;
-    ctx.beginPath(); ctx.ellipse(-10, 42, 12, 8, 0, 0, U.TAU); ctx.ellipse(10, 42, 12, 8, 0, 0, U.TAU); ctx.fill();
-    // arms resting (or drawn close when fearful)
-    ctx.strokeStyle = "#e8b98e"; ctx.lineWidth = 7; ctx.lineCap = "round";
-    const armIn = fear * 4;
+    // gold border
+    ctx.strokeStyle = gold; ctx.lineWidth = 3.5;
     ctx.beginPath();
-    ctx.moveTo(-11, -6 + breathe); ctx.quadraticCurveTo(-20 + armIn, 14, -8 + armIn, 30);
-    ctx.moveTo(11, -6 + breathe); ctx.quadraticCurveTo(20 - armIn, 14, 8 - armIn, 30);
+    ctx.moveTo(-28, 50); ctx.quadraticCurveTo(-33, 12, -14, -2 + breathe * 0.4);
+    ctx.moveTo(14, -2 + breathe * 0.4); ctx.quadraticCurveTo(33, 12, 28, 50);
     ctx.stroke();
+    // knee bumps
+    ctx.fillStyle = U.mix(sariA, "#000", 0.28);
+    ctx.beginPath(); ctx.ellipse(-12, 48, 14, 9, 0.12, 0, U.TAU); ctx.ellipse(12, 48, 14, 9, -0.12, 0, U.TAU); ctx.fill();
 
-    // neck + head (head bows lower when sorrowful/fearful, lifts with recognition)
-    const headDrop = U.lerp(2, 8, fear) - rec * 9;
-    const hx = -fear * 2, hy = -34 + breathe + headDrop;
-    ctx.fillStyle = "#edbf94";
-    ctx.fillRect(-4, hy + 12, 8, 9);
-    ctx.beginPath(); ctx.arc(hx, hy, 15, 0, U.TAU); ctx.fill();
-    // long dark hair
-    ctx.fillStyle = "#1c1410";
-    ctx.beginPath(); ctx.arc(hx, hy - 2, 15.5, Math.PI * 0.92, U.TAU + Math.PI * 0.08); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(hx - 13, hy - 2); ctx.quadraticCurveTo(hx - 22, hy + 26, hx - 12, hy + 48);
-    ctx.lineTo(hx - 4, hy + 46); ctx.quadraticCurveTo(hx - 12, hy + 22, hx - 7, hy - 4);
-    ctx.closePath(); ctx.fill();
-    // veil over hair (the "cloud"), lifts as recognized
-    ctx.save();
-    ctx.globalAlpha = 0.5 * (1 - rec);
-    ctx.fillStyle = "#d9def0";
-    ctx.beginPath();
-    ctx.moveTo(hx - 16, hy + 2);
-    ctx.quadraticCurveTo(hx, hy - 22, hx + 16, hy + 2);
-    ctx.quadraticCurveTo(hx + 10, hy + 8, hx, hy + 6);
-    ctx.quadraticCurveTo(hx - 10, hy + 8, hx - 16, hy + 2);
-    ctx.closePath(); ctx.fill();
-    ctx.restore();
+    // torso
+    const tg2 = ctx.createLinearGradient(0, -28, 0, 4);
+    tg2.addColorStop(0, skin); tg2.addColorStop(1, sariB);
+    ctx.fillStyle = tg2;
+    ctx.beginPath(); ctx.ellipse(0, -10 + breathe * 0.3, 15, 19, 0, 0, U.TAU); ctx.fill();
 
-    // face — eyes & brow shift with mood
-    ctx.save(); ctx.translate(hx, hy);
-    // eyes
-    ctx.fillStyle = "#241a2a";
-    const eo = 5;
-    if (rec > 0.4) {
-      // gentle, lifted gaze
-      ctx.beginPath(); ctx.arc(-eo, 0, 2.0, 0, U.TAU); ctx.arc(eo, 0, 2.0, 0, U.TAU); ctx.fill();
-    } else {
-      // downcast / worried (small lidded eyes)
-      ctx.lineWidth = 1.8; ctx.strokeStyle = "#241a2a"; ctx.lineCap = "round";
-      ctx.beginPath(); ctx.moveTo(-eo - 2, 1); ctx.quadraticCurveTo(-eo, 2.4, -eo + 2, 1);
-      ctx.moveTo(eo - 2, 1); ctx.quadraticCurveTo(eo, 2.4, eo + 2, 1); ctx.stroke();
+    // arms
+    ctx.strokeStyle = skin; ctx.lineWidth = 10; ctx.lineCap = "round";
+    const aIn = fear * 5;
+    ctx.beginPath(); ctx.moveTo(-13, -10 + breathe * 0.3); ctx.quadraticCurveTo(-27 + aIn, 6, -16 + aIn * 0.6, 31); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo( 13, -10 + breathe * 0.3); ctx.quadraticCurveTo( 27 - aIn, 6,  16 - aIn * 0.6, 31); ctx.stroke();
+    ctx.fillStyle = skin;
+    ctx.beginPath(); ctx.arc(-16 + aIn * 0.6, 31, 5.5, 0, U.TAU); ctx.arc(16 - aIn * 0.6, 31, 5.5, 0, U.TAU); ctx.fill();
+    // bangles
+    ctx.strokeStyle = gold; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(-16 + aIn * 0.6, 27, 5.2, 0, U.TAU); ctx.stroke();
+    ctx.beginPath(); ctx.arc( 16 - aIn * 0.6, 27, 5.2, 0, U.TAU); ctx.stroke();
+
+    // ---- BIG CARTOON HEAD ----
+    const headDrop = U.lerp(2, 11, fear) - rec * 13;
+    const hx = -fear * 2, hy = -47 + breathe * 0.3 + headDrop;
+    const HR = 24; // large cartoon radius
+
+    ctx.fillStyle = skin; ctx.fillRect(hx - 6, hy + HR - 2, 12, 15); // neck
+
+    // hair mass (dark, voluminous)
+    ctx.fillStyle = "#1c100a";
+    ctx.beginPath(); ctx.arc(hx, hy, HR + 5, 0, U.TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx - HR * 0.76, hy - HR * 0.52, 14, 0, U.TAU); ctx.fill(); // side bun
+    // jasmine flowers in bun
+    ctx.fillStyle = "#fffcea";
+    for (let i = 0; i < 5; i++) {
+      const fa = -0.6 + i * 0.45;
+      ctx.beginPath(); ctx.arc(hx - HR * 0.76 + Math.cos(fa) * 11, hy - HR * 0.52 + Math.sin(fa) * 11, 3, 0, U.TAU); ctx.fill();
     }
-    // brows — knit when fearful
-    if (fear > 0.25) {
-      ctx.strokeStyle = "#3a2a20"; ctx.lineWidth = 1.4;
+
+    // veil / dupatta — fades as recognized
+    const veilA = 0.55 * (1 - rec * 0.8);
+    if (veilA > 0.04) {
+      ctx.save(); ctx.globalAlpha = veilA; ctx.fillStyle = "#dde6fa";
       ctx.beginPath();
-      ctx.moveTo(-eo - 3, -5 + fear); ctx.lineTo(-eo + 2, -6);
-      ctx.moveTo(eo + 3, -5 + fear); ctx.lineTo(eo - 2, -6); ctx.stroke();
+      ctx.moveTo(hx - HR - 4, hy - 3); ctx.quadraticCurveTo(hx, hy - HR * 1.45, hx + HR + 4, hy - 3);
+      ctx.quadraticCurveTo(hx + HR - 2, hy + 10, hx, hy + 8);
+      ctx.quadraticCurveTo(hx - HR + 2, hy + 10, hx - HR - 4, hy - 3);
+      ctx.closePath(); ctx.fill(); ctx.restore();
     }
-    // bindi
-    ctx.fillStyle = "#c83f63"; ctx.beginPath(); ctx.arc(0, -6, 1.6, 0, U.TAU); ctx.fill();
-    // mouth — sorrow vs. soft smile of recognition
-    ctx.strokeStyle = "#a65c52"; ctx.lineWidth = 1.6; ctx.lineCap = "round";
-    ctx.beginPath();
-    if (rec > 0.4) ctx.arc(0, 6, 3.4, 0.15 * Math.PI, 0.85 * Math.PI);
-    else ctx.arc(0, 10, 3.4, 1.15 * Math.PI, 1.85 * Math.PI); // downturned
-    ctx.stroke();
-    // a tear when very sorrowful and not yet recognized
+
+    // face skin (radial gradient, lit from upper-left)
+    const fg2 = ctx.createRadialGradient(hx - 5, hy - 7, 3, hx, hy, HR);
+    fg2.addColorStop(0, "#fce0bf"); fg2.addColorStop(1, skin);
+    ctx.fillStyle = fg2; ctx.beginPath(); ctx.arc(hx, hy, HR, 0, U.TAU); ctx.fill();
+
+    // rosy cheeks
+    ctx.fillStyle = U.rgba("#ff9a80", 0.32);
+    ctx.beginPath(); ctx.arc(hx - 10, hy + 5, 7, 0, U.TAU); ctx.arc(hx + 10, hy + 5, 7, 0, U.TAU); ctx.fill();
+
+    // ---- EYES (large, expressive) ----
+    const eo = 9, eyeY = hy - 3;
+    const eyeHh = rec > 0.3 ? 10 : (fear > 0.25 ? 10.5 : 8.5);
+    // whites
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.ellipse(hx - eo, eyeY, 9.5, eyeHh, 0, 0, U.TAU); ctx.ellipse(hx + eo, eyeY, 9.5, eyeHh, 0, 0, U.TAU); ctx.fill();
+    // iris
+    const eyeSY = rec > 0.3 ? -2.2 : (fear > 0.25 ? 1.8 : 1);
+    ctx.fillStyle = "#2c1a0e";
+    ctx.beginPath(); ctx.arc(hx - eo, eyeY + eyeSY, 6, 0, U.TAU); ctx.arc(hx + eo, eyeY + eyeSY, 6, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "#100804";
+    ctx.beginPath(); ctx.arc(hx - eo, eyeY + eyeSY, 3.6, 0, U.TAU); ctx.arc(hx + eo, eyeY + eyeSY, 3.6, 0, U.TAU); ctx.fill();
+    // eye shines
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(hx - eo - 2.2, eyeY + eyeSY - 2.4, 2.4, 0, U.TAU); ctx.arc(hx + eo - 2.2, eyeY + eyeSY - 2.4, 2.4, 0, U.TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(hx - eo + 2.8, eyeY + eyeSY + 1.6, 1.1, 0, U.TAU); ctx.arc(hx + eo + 2.8, eyeY + eyeSY + 1.6, 1.1, 0, U.TAU); ctx.fill();
+    // lower lid (downcast)
+    if (rec < 0.3) {
+      ctx.save(); ctx.fillStyle = skin;
+      ctx.beginPath(); ctx.ellipse(hx - eo, eyeY, 9.5, eyeHh, 0, 0, Math.PI); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(hx + eo, eyeY, 9.5, eyeHh, 0, 0, Math.PI); ctx.fill();
+      ctx.restore();
+    }
+    // eyelashes (upper)
+    ctx.strokeStyle = "#1c100a"; ctx.lineWidth = 1.9; ctx.lineCap = "round";
+    for (const side of [-1, 1]) {
+      const bex = hx + side * eo;
+      for (let l = -3; l <= 3; l++) {
+        const la = Math.PI + (l / 6) * 0.76;
+        ctx.beginPath();
+        ctx.moveTo(bex + Math.cos(la) * 9, eyeY + Math.sin(la) * 9);
+        ctx.lineTo(bex + Math.cos(la) * 14, eyeY + Math.sin(la) * 14 - 2.4);
+        ctx.stroke();
+      }
+    }
+
+    // eyebrows
+    ctx.strokeStyle = "#2a1610"; ctx.lineWidth = 3; ctx.lineCap = "round";
+    const brY = eyeY - eyeHh - 4;
+    if (fear > 0.25) {
+      ctx.beginPath();
+      ctx.moveTo(hx - eo - 7, brY + fear * 4); ctx.lineTo(hx - eo + 5, brY);
+      ctx.moveTo(hx + eo - 5, brY); ctx.lineTo(hx + eo + 7, brY + fear * 4); ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(hx - eo - 7, brY + 1); ctx.quadraticCurveTo(hx - eo, brY - 3, hx - eo + 5, brY + 1);
+      ctx.moveTo(hx + eo - 5, brY + 1); ctx.quadraticCurveTo(hx + eo, brY - 3, hx + eo + 7, brY + 1);
+      ctx.stroke();
+    }
+
+    // nose
+    ctx.fillStyle = U.rgba(skinDk, 0.5);
+    ctx.beginPath(); ctx.arc(hx - 2, hy + 6, 2.5, 0, U.TAU); ctx.arc(hx + 3, hy + 6, 2.5, 0, U.TAU); ctx.fill();
+
+    // BINDI (prominent)
+    ctx.fillStyle = "#cc2050"; ctx.beginPath(); ctx.arc(hx, hy - 10, 4, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "#ff4080"; ctx.beginPath(); ctx.arc(hx + 0.7, hy - 10.8, 1.8, 0, U.TAU); ctx.fill();
+
+    // mouth
+    ctx.strokeStyle = "#b04838"; ctx.lineWidth = 2.8; ctx.lineCap = "round";
+    if (rec > 0.4) { ctx.beginPath(); ctx.arc(hx, hy + 10, 6, 0.1 * Math.PI, 0.9 * Math.PI); ctx.stroke(); }
+    else           { ctx.beginPath(); ctx.arc(hx, hy + 14, 5.5, 1.1 * Math.PI, 1.9 * Math.PI); ctx.stroke(); }
+
+    // tear
     if (fear > 0.4 && rec < 0.1) {
-      ctx.fillStyle = "rgba(180,210,255,0.8)";
-      ctx.beginPath(); ctx.arc(-eo, 6 + (t * 14 % 8), 1.2, 0, U.TAU); ctx.fill();
+      ctx.fillStyle = "rgba(160,210,255,0.85)";
+      ctx.beginPath(); ctx.arc(hx - eo, hy + 8 + (t * 12 % 8), 1.8, 0, U.TAU); ctx.fill();
     }
+
+    // ---- jewelry ----
+    for (const side of [-1, 1]) {
+      const ex2 = hx + side * (HR + 2), ey2 = hy + 7;
+      ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(ex2, ey2, 6, 0, U.TAU); ctx.fill();
+      ctx.fillStyle = "#c030a8"; ctx.beginPath(); ctx.arc(ex2, ey2, 3.2, 0, U.TAU); ctx.fill();
+      ctx.strokeStyle = gold; ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(ex2, ey2 + 6); ctx.lineTo(ex2, ey2 + 8); ctx.stroke();
+      ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(ex2, ey2 + 11, 2.8, 0, U.TAU); ctx.fill();
+    }
+    // necklace arc
+    ctx.save(); ctx.strokeStyle = gold; ctx.lineWidth = 2.6; ctx.lineCap = "round";
+    ctx.beginPath();
+    const nBase = hy + HR * 0.9;
+    for (let ni = 0; ni <= 9; ni++) {
+      const na = Math.PI * (0.65 + ni / 9 * 0.7);
+      const nx2 = hx + Math.cos(na) * (HR * 0.92), ny2 = nBase + Math.sin(na) * (HR * 0.45);
+      if (ni === 0) ctx.moveTo(nx2, ny2); else ctx.lineTo(nx2, ny2);
+    }
+    ctx.stroke();
+    ctx.fillStyle = gold; ctx.beginPath(); ctx.arc(hx, nBase + HR * 0.45 + 6, 5, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "#2080d8"; ctx.beginPath(); ctx.arc(hx, nBase + HR * 0.45 + 6, 3, 0, U.TAU); ctx.fill();
     ctx.restore();
+
     ctx.restore();
   };
 
@@ -959,28 +1047,25 @@
     const HX = P.headX, HY = P.headY, HR = 15;
     ctx.save();
     ctx.translate(HX, HY); ctx.rotate(P.headTilt);
-    // white fur ruff framing the lower face (the vanara feature)
-    ctx.fillStyle = fur;
-    for (let i = 0; i <= 12; i++) {
-      const a = Math.PI * (0.06 + (i / 12) * 0.88);
-      const fx = Math.cos(a) * HR * 1.0, fy = Math.sin(a) * HR * 1.05 + 1.5;
-      ctx.beginPath(); ctx.arc(fx, fy, 4.0, 0, U.TAU); ctx.fill();
-    }
-    // dark hair tufts at the temples (under the crown)
+    // hair base
     ctx.fillStyle = hair;
-    ctx.beginPath(); ctx.arc(-HR * 0.96, -HR * 0.32, 5, 0, U.TAU); ctx.arc(HR * 0.96, -HR * 0.32, 5, 0, U.TAU); ctx.fill();
-    ctx.beginPath(); ctx.arc(-HR * 0.66, -HR * 0.74, 4, 0, U.TAU); ctx.arc(HR * 0.66, -HR * 0.74, 4, 0, U.TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, -2, HR + 2, 0, U.TAU); ctx.fill();
     // jhumka earrings
     ctx.fillStyle = gold;
     ctx.beginPath(); ctx.arc(-HR * 0.98, HR * 0.28, 2.2, 0, U.TAU); ctx.arc(HR * 0.98, HR * 0.28, 2.2, 0, U.TAU); ctx.fill();
     ctx.beginPath(); ctx.arc(-HR * 0.98, HR * 0.52, 1.4, 0, U.TAU); ctx.arc(HR * 0.98, HR * 0.52, 1.4, 0, U.TAU); ctx.fill();
-    // face ball (cream)
-    const fg2 = ctx.createRadialGradient(-3, -3, 3, 0, 0, HR);
-    fg2.addColorStop(0, "#fbe0bf"); fg2.addColorStop(1, skin);
+    // face ball (cream, slightly larger)
+    const fg2 = ctx.createRadialGradient(-3, -3, 2, 0, 0, HR);
+    fg2.addColorStop(0, "#fce4c4"); fg2.addColorStop(1, skin);
     ctx.fillStyle = fg2; ctx.beginPath(); ctx.arc(0, 0, HR, 0, U.TAU); ctx.fill();
+    // clear cream muzzle / snout oval (vanara face feature)
+    ctx.fillStyle = fur;
+    ctx.beginPath(); ctx.ellipse(0, 5, HR * 0.58, HR * 0.5, 0, 0, U.TAU); ctx.fill();
+    ctx.strokeStyle = U.rgba(skin, 0.4); ctx.lineWidth = 0.8;
+    ctx.beginPath(); ctx.ellipse(0, 5, HR * 0.58, HR * 0.5, 0, 0, U.TAU); ctx.stroke();
     // rosy cheeks
-    ctx.fillStyle = U.rgba("#ff9a8a", 0.5);
-    ctx.beginPath(); ctx.arc(-6.5, 4, 3, 0, U.TAU); ctx.arc(6.5, 4, 3, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = U.rgba("#ff9a8a", 0.45);
+    ctx.beginPath(); ctx.arc(-6, 3, 3.5, 0, U.TAU); ctx.arc(6, 3, 3.5, 0, U.TAU); ctx.fill();
     // crown (drawn after face base so it sits on the head)
     crown(ctx, HR);
     // eyes (big, expressive)
@@ -1047,4 +1132,136 @@
     ctx.restore();
   }
   Art.diya = drawDiya;
+
+  /* ---------------- forest trees (maze walls) ---------------- */
+  Art.bigTree = function (ctx, x, y, s, t, seed) {
+    const rnd = srand(seed || 11);
+    ctx.save(); ctx.translate(x, y);
+    // shadow on ground
+    ctx.fillStyle = "rgba(0,0,0,0.32)";
+    ctx.beginPath(); ctx.ellipse(s * 0.1, s * 0.18, s * 1.15, s * 0.32, 0, 0, U.TAU); ctx.fill();
+    // trunk
+    const trg = ctx.createLinearGradient(-s * 0.14, -s * 0.1, s * 0.14, -s * 0.1);
+    trg.addColorStop(0, "#2a1808"); trg.addColorStop(0.5, "#4a2e12"); trg.addColorStop(1, "#1e1006");
+    ctx.fillStyle = trg;
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.12, s * 0.14);
+    ctx.bezierCurveTo(-s * 0.10, -s * 0.42, -s * 0.13, -s * 0.78, -s * 0.11, -s * 1.06);
+    ctx.lineTo(s * 0.11, -s * 1.06);
+    ctx.bezierCurveTo(s * 0.13, -s * 0.78, s * 0.10, -s * 0.42, s * 0.12, s * 0.14);
+    ctx.closePath(); ctx.fill();
+    // canopy — layered blobs, gently swaying
+    const sway = Math.sin(t * 0.55 + seed * 0.3) * 3.5;
+    const blobs = [[0, -s * 1.52, s * 0.68], [-s * 0.5, -s * 1.22, s * 0.56], [s * 0.52, -s * 1.26, s * 0.56],
+                   [0, -s * 1.94, s * 0.54], [-s * 0.32, -s * 1.70, s * 0.44], [s * 0.36, -s * 1.66, s * 0.44],
+                   [-s * 0.68, -s * 1.46, s * 0.36], [s * 0.70, -s * 1.48, s * 0.36]];
+    ctx.fillStyle = "#0e3020";
+    ctx.beginPath(); blobs.forEach(b => ctx.arc(b[0] + sway, b[1], b[2] * 1.06, 0, U.TAU)); ctx.fill();
+    ctx.fillStyle = "#183c2a";
+    ctx.beginPath(); blobs.forEach(b => ctx.arc(b[0] + sway - 5, b[1] - 6, b[2] * 0.82, 0, U.TAU)); ctx.fill();
+    ctx.fillStyle = "#1e5036";
+    ctx.beginPath(); blobs.slice(0, 4).forEach(b => ctx.arc(b[0] + sway - 8, b[1] - 11, b[2] * 0.38, 0, U.TAU)); ctx.fill();
+    // ashoka blossoms
+    for (let i = 0; i < 8; i++) {
+      const bx = (rnd() - 0.5) * s * 1.3 + sway, by = -s * (1.1 + rnd() * 0.86);
+      ctx.fillStyle = U.choose(["#ff7a3c", "#ff9a4a", "#ff5d6c", "#ffb24a"]);
+      ctx.beginPath(); ctx.arc(bx, by, 2.6 + rnd() * 1.4, 0, U.TAU); ctx.fill();
+    }
+    ctx.restore();
+  };
+
+  Art.smallTree = function (ctx, x, y, s, t, seed) {
+    const rnd = srand(seed || 17);
+    ctx.save(); ctx.translate(x, y);
+    // shadow
+    ctx.fillStyle = "rgba(0,0,0,0.24)";
+    ctx.beginPath(); ctx.ellipse(s * 0.05, s * 0.12, s * 0.88, s * 0.26, 0, 0, U.TAU); ctx.fill();
+    // trunk
+    ctx.fillStyle = "#3a2010";
+    ctx.beginPath();
+    ctx.moveTo(-s * 0.1, s * 0.1); ctx.lineTo(-s * 0.08, -s * 0.72);
+    ctx.lineTo(s * 0.08, -s * 0.72); ctx.lineTo(s * 0.1, s * 0.1); ctx.closePath(); ctx.fill();
+    // canopy
+    const sway2 = Math.sin(t * 0.7 + seed * 0.5) * 2;
+    ctx.fillStyle = "#122e1e";
+    ctx.beginPath(); ctx.arc(sway2, -s * 1.02, s * 0.58, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "#1a4830";
+    ctx.beginPath(); ctx.arc(sway2 - 3, -s * 1.12, s * 0.42, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "#1c5438";
+    ctx.beginPath(); ctx.arc(sway2 - 6, -s * 1.20, s * 0.26, 0, U.TAU); ctx.fill();
+    for (let i = 0; i < 4; i++) {
+      const bx = (rnd() - 0.5) * s * 0.96 + sway2, by = -s * (0.72 + rnd() * 0.54);
+      ctx.fillStyle = U.choose(["#ff7a3c", "#ff9a4a", "#ff5d6c"]);
+      ctx.beginPath(); ctx.arc(bx, by, 1.8 + rnd(), 0, U.TAU); ctx.fill();
+    }
+    ctx.restore();
+  };
+
+  /* ------------ sky clouds (big, cartoon-style, for moving layer) ------------ */
+  Art.skyCloud = function (ctx, x, y, s, alpha) {
+    ctx.save(); ctx.globalAlpha = alpha == null ? 0.75 : alpha;
+    const lobes = [[0, 0, 1], [-1.1, 0.22, 0.72], [1.1, 0.22, 0.72],
+                   [-0.5, -0.36, 0.65], [0.52, -0.32, 0.66],
+                   [1.9, 0.35, 0.44], [-1.9, 0.35, 0.44]];
+    // shadow base
+    ctx.fillStyle = "#b8cce8";
+    ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s + 5, l[2] * s, 0, U.TAU)); ctx.fill();
+    // main body
+    ctx.fillStyle = "#e2eeff";
+    ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s, l[2] * s, 0, U.TAU)); ctx.fill();
+    // bright highlight
+    ctx.fillStyle = "rgba(255,255,255,0.88)";
+    ctx.beginPath(); ctx.arc(x - 0.18 * s, y - 0.28 * s, s * 0.56, 0, U.TAU); ctx.fill();
+    ctx.restore();
+  };
+
+  /* ------------ subtle perspective ground grid (3-D feel) ------------ */
+  Art.perspectiveGround = function (ctx) {
+    const vpX = DG.W * 0.5, vpY = DG.H * 0.18; // vanishing point
+    ctx.save(); ctx.globalAlpha = 0.055; ctx.strokeStyle = "#6878b0"; ctx.lineWidth = 1;
+    // converging vertical lines
+    for (let i = 0; i <= 10; i++) {
+      const bx = (i / 10) * DG.W;
+      ctx.beginPath(); ctx.moveTo(vpX + (bx - vpX) * 0.12, vpY + (DG.H - vpY) * 0.12); ctx.lineTo(bx, DG.H); ctx.stroke();
+    }
+    // horizontal parallel lines (spacing compressed toward top)
+    for (let i = 1; i <= 10; i++) {
+      const k = Math.pow(i / 10, 1.7);
+      const y = vpY + (DG.H - vpY) * k;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(DG.W, y); ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  /* ------------ gate / archway at maze chokepoints ------------ */
+  Art.gate = function (ctx, x, y, open) {
+    ctx.save(); ctx.translate(x, y);
+    const w = 38, h = 52;
+    // shadow
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.beginPath(); ctx.ellipse(0, h * 0.55, w * 0.6, 8, 0, 0, U.TAU); ctx.fill();
+    const wood = "#5a3010", woodLt = "#7a4820", woodDk = "#2e180a";
+    // two pillars
+    for (const sx of [-w / 2 + 5, w / 2 - 5]) {
+      const pg = ctx.createLinearGradient(sx - 5, 0, sx + 5, 0);
+      pg.addColorStop(0, woodDk); pg.addColorStop(0.5, woodLt); pg.addColorStop(1, woodDk);
+      ctx.fillStyle = pg;
+      U.roundRect(ctx, sx - 6, -h + 6, 12, h, 3); ctx.fill();
+    }
+    // crossbeam
+    const bg = ctx.createLinearGradient(0, -h + 2, 0, -h + 18);
+    bg.addColorStop(0, woodLt); bg.addColorStop(1, wood);
+    ctx.fillStyle = bg;
+    U.roundRect(ctx, -w / 2, -h, w, 14, 4); ctx.fill();
+    // arched opening cutout
+    ctx.fillStyle = open ? "rgba(0,0,0,0)" : U.rgba("#2a1008", 0.7);
+    ctx.beginPath();
+    ctx.arc(0, -h + 14, 13, Math.PI, 0); ctx.lineTo(13, -h * 0.4); ctx.lineTo(-13, -h * 0.4); ctx.closePath(); ctx.fill();
+    // gem on top
+    ctx.fillStyle = "#ffcf3f";
+    ctx.beginPath(); ctx.arc(0, -h + 2, 4.5, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "#ff4080";
+    ctx.beginPath(); ctx.arc(0, -h + 2, 2.5, 0, U.TAU); ctx.fill();
+    ctx.restore();
+  };
 })();

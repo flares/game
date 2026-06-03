@@ -121,6 +121,50 @@
     if (s.hasChud) DG.Art.chudamani(ctx, cxp, y0, DG.time, { float: false, scale: 0.95 });
     else { ctx.save(); ctx.globalAlpha = 0.35; ctx.strokeStyle = "rgba(180,210,255,0.7)"; ctx.lineWidth = 2; U.starPath(ctx, cxp, y0, 5, 9, 4); ctx.stroke(); ctx.restore(); }
 
+    // ---- Rāma namaas bar ----
+    if (s.ramaMax != null) {
+      const bx = 26, by = 82, bw = 160, bh = 14;
+      const frac = U.clamp((s.ramaBar || 0) / s.ramaMax, 0, 1);
+      // background
+      ctx.save();
+      ctx.fillStyle = "rgba(10,10,32,0.7)";
+      U.roundRect(ctx, bx - 2, by - 2, bw + 4, bh + 4, 8); ctx.fill();
+      // fill
+      if (frac > 0) {
+        const fg = ctx.createLinearGradient(bx, 0, bx + bw * frac, 0);
+        fg.addColorStop(0, "#a0c8ff");
+        fg.addColorStop(1, "#ffe9a0");
+        ctx.fillStyle = fg;
+        U.roundRect(ctx, bx, by, bw * frac, bh, 6); ctx.fill();
+      }
+      // border
+      ctx.strokeStyle = "rgba(200,220,255,0.45)"; ctx.lineWidth = 1.5;
+      U.roundRect(ctx, bx - 1, by - 1, bw + 2, bh + 2, 8); ctx.stroke();
+      // label
+      U.text(ctx, "ॐ Rāma", bx + bw + 12, by + bh / 2, { size: 14, fill: "rgba(220,230,255,0.8)", weight: "600", align: "left", baseline: "middle" });
+      ctx.restore();
+    }
+
+    // ---- dawn timer ----
+    if (s.dawnTimer != null && s.dawnTime != null) {
+      const secsLeft = Math.max(0, s.dawnTimer);
+      const mins = Math.floor(secsLeft / 60), secs = Math.floor(secsLeft % 60);
+      const label = `${mins}:${String(secs).padStart(2, "0")}`;
+      const urgency = U.clamp(1 - secsLeft / s.dawnTime, 0, 1);
+      const col = urgency > 0.75 ? U.mix("#ff8060", "#ff2020", (urgency - 0.75) * 4) :
+                  urgency > 0.5  ? U.mix("#ffd060", "#ff8060", (urgency - 0.5)  * 4) : "#c8d8ff";
+      ctx.save(); ctx.globalAlpha = 0.5 + urgency * 0.4;
+      // crescent icon
+      const ix = W - 118, iy = 50;
+      ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(ix, iy, 10, Math.PI * 0.18, Math.PI * 1.82); ctx.stroke();
+      ctx.strokeStyle = "rgba(10,10,32,0.7)"; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.arc(ix + 4, iy - 1, 9, Math.PI * 0.2, Math.PI * 1.8); ctx.stroke();
+      // countdown text
+      U.text(ctx, label, ix + 22, iy, { size: 18, fill: col, weight: "bold", align: "left", baseline: "middle" });
+      ctx.restore();
+    }
+
     muteIcon(ctx, s.muted);
   };
 
