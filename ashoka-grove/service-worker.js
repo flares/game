@@ -1,6 +1,6 @@
 /* A Light in the Ashoka Grove — service worker. Offline-first app shell.
    Bump CACHE on any asset change to refresh installed copies. */
-const CACHE = "ashoka-grove-v3";
+const CACHE = "ashoka-grove-v4";
 const ASSETS = [
   "./",
   "./index.html",

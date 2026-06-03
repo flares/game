@@ -365,9 +365,9 @@
       clouds.length = 0;
       for (let i = 0; i < 7; i++)
         clouds.push({
-          x: U.rand(-120, W + 120), y: U.rand(40, H * 0.38),
-          s: U.rand(44, 80), speed: U.rand(7, 18),
-          alpha: U.rand(0.28, 0.60),
+          x: U.rand(-120, W + 120), y: U.rand(30, H * 0.26),
+          s: U.rand(62, 110), speed: U.rand(6, 16),
+          alpha: U.rand(0.60, 0.88),
         });
       dawnK = 0; dawnTimer = DAWN_TIME; dawnWarnShown = false;
       veilBase = 0.82; moonVeil = 0.35; toss = null;
@@ -599,7 +599,7 @@
 
     function render(ctx) {
       // sky — groundWash is now transparent at top, so sky/stars/spires are visible
-      Art.sky(ctx, [[0, U.mix("#060618", "#2a1a3a", dawnK)], [0.28, U.mix("#0a0a2c", "#4a2a68", dawnK)], [0.55, U.mix("#0e0e38", "#6a4a6e", dawnK)], [0.80, U.mix("#181640", "#e0a06a", dawnK)], [1, U.mix("#100e2e", "#ffd089", dawnK)]]);
+      Art.sky(ctx, [[0, U.mix("#061418", "#2a1a3a", dawnK)], [0.28, U.mix("#0a1c28", "#4a2a68", dawnK)], [0.55, U.mix("#0c2030", "#6a4a6e", dawnK)], [0.80, U.mix("#0e1e2a", "#e0a06a", dawnK)], [1, U.mix("#0a1810", "#ffd089", dawnK)]]);
       Art.groundWash(ctx);
       Art.stars(ctx, DG.time, 90, H * 0.28);
       Art.lankaSpires(ctx, H * 0.27, DG.time);

@@ -132,15 +132,14 @@
   };
 
   /* ---------------- ground ---------------- */
-  // a dim night-grove floor wash
+  // a dim night-grove floor wash — deep olive-green, transparent at top so sky shows
   Art.groundWash = function (ctx) {
-    // transparent at top so sky/stars show; fades to dark earthy ground
     const g = ctx.createLinearGradient(0, DG.H * 0.12, 0, DG.H);
-    g.addColorStop(0,    "rgba(18,17,46,0)");
-    g.addColorStop(0.16, "rgba(18,17,46,0.78)");
-    g.addColorStop(0.52, "#141432");
-    g.addColorStop(0.84, "#1a1528");
-    g.addColorStop(1,    "#1e1620");
+    g.addColorStop(0,    "rgba(10,22,14,0)");
+    g.addColorStop(0.16, "rgba(10,22,14,0.78)");
+    g.addColorStop(0.52, "#0e1c12");
+    g.addColorStop(0.84, "#0c1a10");
+    g.addColorStop(1,    "#0a160e");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, DG.W, DG.H);
   };
@@ -254,7 +253,7 @@
     ctx.restore();
   };
 
-  // ashoka hedge / shrub clump with red-orange blossoms
+  // ashoka hedge / shrub clump with red-orange blossoms — cartoon style with bold outlines
   Art.hedge = function (ctx, x, y, s, seed) {
     const rnd = srand(seed || 7);
     ctx.save();
@@ -263,15 +262,26 @@
     ctx.fillStyle = "rgba(0,0,0,0.22)";
     ctx.beginPath(); ctx.ellipse(0, s * 0.5, s * 1.1, s * 0.35, 0, 0, U.TAU); ctx.fill();
     const blobs = 5 + (seed % 3);
+    // pre-store blob positions so outline + fill passes are consistent
+    const blobData = [];
     for (let i = 0; i < blobs; i++) {
-      const bx = (rnd() - 0.5) * s * 1.8;
-      const by = -rnd() * s * 0.9;
-      const br = s * (0.5 + rnd() * 0.5);
-      const g = ctx.createRadialGradient(bx - br * 0.3, by - br * 0.3, br * 0.2, bx, by, br);
-      g.addColorStop(0, "#1f5e3e"); g.addColorStop(1, "#123a28");
-      ctx.fillStyle = g;
-      ctx.beginPath(); ctx.arc(bx, by, br, 0, U.TAU); ctx.fill();
+      blobData.push({ bx: (rnd() - 0.5) * s * 1.8, by: -rnd() * s * 0.9, br: s * (0.5 + rnd() * 0.5) });
     }
+    // dark outline ring pass
+    ctx.fillStyle = "#1a3818";
+    ctx.beginPath();
+    blobData.forEach(b => ctx.arc(b.bx, b.by, b.br + 3.5, 0, U.TAU));
+    ctx.fill();
+    // flat vivid green fill pass
+    ctx.fillStyle = "#2a7040";
+    ctx.beginPath();
+    blobData.forEach(b => ctx.arc(b.bx, b.by, b.br, 0, U.TAU));
+    ctx.fill();
+    // bold stroke outline per blob
+    ctx.strokeStyle = "#1a3020"; ctx.lineWidth = 2.2; ctx.lineJoin = "round";
+    blobData.forEach(b => {
+      ctx.beginPath(); ctx.arc(b.bx, b.by, b.br, 0, U.TAU); ctx.stroke();
+    });
     // ashoka blossoms (warm dots)
     for (let i = 0; i < blobs * 2; i++) {
       const bx = (rnd() - 0.5) * s * 1.7;
@@ -366,33 +376,41 @@
   };
 
   /* ---------------- the simsupa bower + Sitamma ---------------- */
-  // big sheltering tree at top-right
+  // big sheltering simsupa bower at top-right — cartoon style with bold outlines
   Art.simsupa = function (ctx, x, y, s, t) {
     ctx.save(); ctx.translate(x, y);
     // trunk
-    const tg = ctx.createLinearGradient(-s * 0.16, 0, s * 0.16, 0);
-    tg.addColorStop(0, "#3a2a1c"); tg.addColorStop(0.5, "#5a4026"); tg.addColorStop(1, "#2c1f14");
-    ctx.fillStyle = tg;
+    ctx.fillStyle = "#3a2a1c";
+    ctx.strokeStyle = "#1e100a"; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.moveTo(-s * 0.13, 0);
     ctx.quadraticCurveTo(-s * 0.05, -s * 0.5, -s * 0.16, -s * 1.0);
     ctx.lineTo(s * 0.16, -s * 1.0);
     ctx.quadraticCurveTo(s * 0.05, -s * 0.5, s * 0.13, 0);
-    ctx.closePath(); ctx.fill();
-    // canopy — layered night-green blobs
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // canopy — dark outline ring first, then vivid green fill
     const sway = Math.sin(t * 0.5) * 4;
     const blobs = [[0, -1.35, 0.75], [-0.55, -1.1, 0.55], [0.55, -1.15, 0.58], [0, -1.8, 0.6], [-0.35, -1.65, 0.45], [0.4, -1.6, 0.48], [-0.7, -1.5, 0.4], [0.72, -1.5, 0.42]];
-    for (let pass = 0; pass < 2; pass++) {
-      ctx.fillStyle = pass === 0 ? "#143a2a" : "#1c5038";
-      ctx.beginPath();
-      blobs.forEach((b, i) => {
-        const off = pass === 0 ? 0 : 0.12;
-        ctx.moveTo((b[0] + off) * s + sway, (b[1] + off) * s);
-        ctx.arc((b[0]) * s + sway * (1 - i * 0.06), (b[1]) * s, b[2] * s * (pass === 0 ? 1 : 0.82), 0, U.TAU);
-      });
-      ctx.fill();
-    }
-    // a few ashoka blossoms + dangling lamp
+    ctx.fillStyle = "#1a3818";
+    ctx.beginPath();
+    blobs.forEach((b, i) => ctx.arc(b[0] * s + sway * (1 - i * 0.06), b[1] * s, b[2] * s * 1.08 + 3, 0, U.TAU));
+    ctx.fill();
+    // vivid green main canopy
+    ctx.fillStyle = "#2e7848";
+    ctx.beginPath();
+    blobs.forEach((b, i) => ctx.arc(b[0] * s + sway * (1 - i * 0.06), b[1] * s, b[2] * s, 0, U.TAU));
+    ctx.fill();
+    // moonlit green highlight (upper left)
+    ctx.fillStyle = "#4a9e64";
+    ctx.beginPath();
+    blobs.slice(0, 4).forEach((b, i) => ctx.arc(b[0] * s + sway * (1 - i * 0.06) - 8, b[1] * s - 8, b[2] * s * 0.5, 0, U.TAU));
+    ctx.fill();
+    // bold stroke outline
+    ctx.strokeStyle = "#1a3020"; ctx.lineWidth = 2.8; ctx.lineJoin = "round";
+    blobs.forEach((b, i) => {
+      ctx.beginPath(); ctx.arc(b[0] * s + sway * (1 - i * 0.06), b[1] * s, b[2] * s, 0, U.TAU); ctx.stroke();
+    });
+    // ashoka blossoms
     const rnd = srand(404);
     for (let i = 0; i < 10; i++) {
       const bx = (rnd() - 0.5) * s * 1.6;
@@ -448,6 +466,7 @@
     tg2.addColorStop(0, skin); tg2.addColorStop(1, sariB);
     ctx.fillStyle = tg2;
     ctx.beginPath(); ctx.ellipse(0, -10 + breathe * 0.3, 15, 19, 0, 0, U.TAU); ctx.fill();
+    ctx.strokeStyle = "#3a1808"; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.stroke();
 
     // arms
     ctx.strokeStyle = skin; ctx.lineWidth = 10; ctx.lineCap = "round";
@@ -494,6 +513,7 @@
     const fg2 = ctx.createRadialGradient(hx - 5, hy - 7, 3, hx, hy, HR);
     fg2.addColorStop(0, "#fce0bf"); fg2.addColorStop(1, skin);
     ctx.fillStyle = fg2; ctx.beginPath(); ctx.arc(hx, hy, HR, 0, U.TAU); ctx.fill();
+    ctx.strokeStyle = "#3a1808"; ctx.lineWidth = 2.2; ctx.lineJoin = "round"; ctx.stroke();
 
     // rosy cheeks
     ctx.fillStyle = U.rgba("#ff9a80", 0.32);
@@ -1025,6 +1045,7 @@
     bg.addColorStop(0, "#f8d4ac"); bg.addColorStop(1, skinDk);
     ctx.fillStyle = bg;
     ctx.beginPath(); ctx.ellipse(0, -6, 13, 16, 0, 0, U.TAU); ctx.fill();
+    ctx.strokeStyle = "#2a1808"; ctx.lineWidth = 2; ctx.lineJoin = "round"; ctx.stroke();
     ctx.fillStyle = U.rgba("#ffffff", 0.14); ctx.beginPath(); ctx.ellipse(2, -4, 7, 10, 0, 0, U.TAU); ctx.fill();
     // pearl belt
     ctx.strokeStyle = "#ffe9b0"; ctx.lineWidth = 1.5; ctx.setLineDash([1.4, 1.8]);
@@ -1062,6 +1083,7 @@
     const fg2 = ctx.createRadialGradient(-3, -3, 2, 0, 0, HR);
     fg2.addColorStop(0, "#fce4c4"); fg2.addColorStop(1, skin);
     ctx.fillStyle = fg2; ctx.beginPath(); ctx.arc(0, 0, HR, 0, U.TAU); ctx.fill();
+    ctx.strokeStyle = "#2a1408"; ctx.lineWidth = 2.2; ctx.lineJoin = "round"; ctx.stroke();
     // clear cream muzzle / snout oval (vanara face feature)
     ctx.fillStyle = fur;
     ctx.beginPath(); ctx.ellipse(0, 5, HR * 0.58, HR * 0.5, 0, 0, U.TAU); ctx.fill();
@@ -1137,51 +1159,46 @@
   }
   Art.diya = drawDiya;
 
-  /* ---------------- forest trees (maze walls) ---------------- */
+  /* ---------------- forest trees (maze walls) — cartoon style ---------------- */
   Art.bigTree = function (ctx, x, y, s, t, seed) {
     const rnd = srand(seed || 11);
     ctx.save(); ctx.translate(x, y);
-    // shadow on ground
+    // ground shadow
     ctx.fillStyle = "rgba(0,0,0,0.32)";
     ctx.beginPath(); ctx.ellipse(s * 0.1, s * 0.18, s * 1.15, s * 0.32, 0, 0, U.TAU); ctx.fill();
-    // trunk
-    const trg = ctx.createLinearGradient(-s * 0.14, -s * 0.1, s * 0.14, -s * 0.1);
-    trg.addColorStop(0, "#2a1808"); trg.addColorStop(0.5, "#4a2e12"); trg.addColorStop(1, "#1e1006");
-    ctx.fillStyle = trg;
+    // trunk — flat fill with bold outline
+    ctx.fillStyle = "#4a2e12";
+    ctx.strokeStyle = "#1e0e06"; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.moveTo(-s * 0.12, s * 0.14);
     ctx.bezierCurveTo(-s * 0.10, -s * 0.42, -s * 0.13, -s * 0.78, -s * 0.11, -s * 1.06);
     ctx.lineTo(s * 0.11, -s * 1.06);
     ctx.bezierCurveTo(s * 0.13, -s * 0.78, s * 0.10, -s * 0.42, s * 0.12, s * 0.14);
-    ctx.closePath(); ctx.fill();
-    // canopy — layered blobs, gently swaying
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // single round canopy — dark ring outline, vivid green fill, moonlit highlight
     const sway = Math.sin(t * 0.55 + seed * 0.3) * 3.5;
-    const blobs = [[0, -s * 1.52, s * 0.68], [-s * 0.5, -s * 1.22, s * 0.56], [s * 0.52, -s * 1.26, s * 0.56],
-                   [0, -s * 1.94, s * 0.54], [-s * 0.32, -s * 1.70, s * 0.44], [s * 0.36, -s * 1.66, s * 0.44],
-                   [-s * 0.68, -s * 1.46, s * 0.36], [s * 0.70, -s * 1.48, s * 0.36]];
-    ctx.fillStyle = "#0e3020";
-    ctx.beginPath(); blobs.forEach(b => ctx.arc(b[0] + sway, b[1], b[2] * 1.06, 0, U.TAU)); ctx.fill();
-    ctx.fillStyle = "#183c2a";
-    ctx.beginPath(); blobs.forEach(b => ctx.arc(b[0] + sway - 5, b[1] - 6, b[2] * 0.82, 0, U.TAU)); ctx.fill();
-    ctx.fillStyle = "#1e5036";
-    ctx.beginPath(); blobs.slice(0, 4).forEach(b => ctx.arc(b[0] + sway - 8, b[1] - 11, b[2] * 0.38, 0, U.TAU)); ctx.fill();
-    // ashoka blossoms
+    const cx = sway, cy = -s * 1.52, cr = s * 0.72;
+    // dark outline ring
+    ctx.fillStyle = "#1a3818";
+    ctx.beginPath(); ctx.arc(cx, cy, cr + 4, 0, U.TAU); ctx.fill();
+    // vivid green body
+    ctx.fillStyle = "#2e7848";
+    ctx.beginPath(); ctx.arc(cx, cy, cr, 0, U.TAU); ctx.fill();
+    // mid-green highlight
+    ctx.fillStyle = "#4a9e64";
+    ctx.beginPath(); ctx.arc(cx - cr * 0.22, cy - cr * 0.22, cr * 0.58, 0, U.TAU); ctx.fill();
+    // soft moonlit top
+    ctx.fillStyle = "rgba(120,220,150,0.22)";
+    ctx.beginPath(); ctx.arc(cx - cr * 0.30, cy - cr * 0.35, cr * 0.30, 0, U.TAU); ctx.fill();
+    // bold outline stroke on canopy
+    ctx.strokeStyle = "#1a3020"; ctx.lineWidth = 2.8; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.arc(cx, cy, cr, 0, U.TAU); ctx.stroke();
+    // ashoka blossoms scattered across canopy
     for (let i = 0; i < 8; i++) {
-      const bx = (rnd() - 0.5) * s * 1.3 + sway, by = -s * (1.1 + rnd() * 0.86);
+      const bx = (rnd() - 0.5) * cr * 1.8 + cx, by = cy + (rnd() - 0.5) * cr * 1.8;
       ctx.fillStyle = U.choose(["#ff7a3c", "#ff9a4a", "#ff5d6c", "#ffb24a"]);
       ctx.beginPath(); ctx.arc(bx, by, 2.6 + rnd() * 1.4, 0, U.TAU); ctx.fill();
     }
-    // moonlit canopy highlights — upper blobs catch moonlight
-    ctx.save();
-    ctx.globalAlpha = 0.20;
-    ctx.fillStyle = "#4aba62";
-    ctx.beginPath();
-    blobs.slice(3, 6).forEach(b => ctx.arc(b[0] + sway, b[1], b[2] * 0.44, 0, U.TAU)); ctx.fill();
-    ctx.globalAlpha = 0.11;
-    ctx.fillStyle = "#b8f0c0";
-    ctx.beginPath();
-    blobs.slice(3, 5).forEach(b => ctx.arc(b[0] + sway, b[1] - s * 0.09, b[2] * 0.26, 0, U.TAU)); ctx.fill();
-    ctx.restore();
     ctx.restore();
   };
 
@@ -1191,55 +1208,60 @@
     // shadow
     ctx.fillStyle = "rgba(0,0,0,0.24)";
     ctx.beginPath(); ctx.ellipse(s * 0.05, s * 0.12, s * 0.88, s * 0.26, 0, 0, U.TAU); ctx.fill();
-    // trunk
+    // trunk — flat fill with bold outline
     ctx.fillStyle = "#3a2010";
+    ctx.strokeStyle = "#1e0e06"; ctx.lineWidth = 2; ctx.lineJoin = "round";
     ctx.beginPath();
     ctx.moveTo(-s * 0.1, s * 0.1); ctx.lineTo(-s * 0.08, -s * 0.72);
-    ctx.lineTo(s * 0.08, -s * 0.72); ctx.lineTo(s * 0.1, s * 0.1); ctx.closePath(); ctx.fill();
-    // canopy
+    ctx.lineTo(s * 0.08, -s * 0.72); ctx.lineTo(s * 0.1, s * 0.1); ctx.closePath(); ctx.fill(); ctx.stroke();
+    // single round canopy — cartoon style
     const sway2 = Math.sin(t * 0.7 + seed * 0.5) * 2;
-    ctx.fillStyle = "#122e1e";
-    ctx.beginPath(); ctx.arc(sway2, -s * 1.02, s * 0.58, 0, U.TAU); ctx.fill();
-    ctx.fillStyle = "#1a4830";
-    ctx.beginPath(); ctx.arc(sway2 - 3, -s * 1.12, s * 0.42, 0, U.TAU); ctx.fill();
-    ctx.fillStyle = "#1c5438";
-    ctx.beginPath(); ctx.arc(sway2 - 6, -s * 1.20, s * 0.26, 0, U.TAU); ctx.fill();
+    const cx = sway2, cy = -s * 1.02, cr = s * 0.58;
+    // dark outline ring
+    ctx.fillStyle = "#1a3818";
+    ctx.beginPath(); ctx.arc(cx, cy, cr + 3, 0, U.TAU); ctx.fill();
+    // vivid green fill
+    ctx.fillStyle = "#2e7848";
+    ctx.beginPath(); ctx.arc(cx, cy, cr, 0, U.TAU); ctx.fill();
+    // moonlit highlight
+    ctx.fillStyle = "#4a9e64";
+    ctx.beginPath(); ctx.arc(cx - cr * 0.2, cy - cr * 0.22, cr * 0.52, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "rgba(120,220,150,0.20)";
+    ctx.beginPath(); ctx.arc(cx - cr * 0.28, cy - cr * 0.30, cr * 0.26, 0, U.TAU); ctx.fill();
+    // bold outline
+    ctx.strokeStyle = "#1a3020"; ctx.lineWidth = 2.4; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.arc(cx, cy, cr, 0, U.TAU); ctx.stroke();
+    // blossoms
     for (let i = 0; i < 4; i++) {
-      const bx = (rnd() - 0.5) * s * 0.96 + sway2, by = -s * (0.72 + rnd() * 0.54);
+      const bx = (rnd() - 0.5) * cr * 1.7 + cx, by = cy + (rnd() - 0.5) * cr * 1.7;
       ctx.fillStyle = U.choose(["#ff7a3c", "#ff9a4a", "#ff5d6c"]);
       ctx.beginPath(); ctx.arc(bx, by, 1.8 + rnd(), 0, U.TAU); ctx.fill();
     }
-    // moonlit top highlight
-    ctx.save();
-    ctx.globalAlpha = 0.22; ctx.fillStyle = "#3ea854";
-    ctx.beginPath(); ctx.arc(sway2 - 5, -s * 1.22, s * 0.30, 0, U.TAU); ctx.fill();
-    ctx.globalAlpha = 0.12; ctx.fillStyle = "#94eaa4";
-    ctx.beginPath(); ctx.arc(sway2 - 7, -s * 1.30, s * 0.16, 0, U.TAU); ctx.fill();
-    ctx.restore();
     ctx.restore();
   };
 
-  /* ------------ sky clouds (big, cartoon-style, for moving layer) ------------ */
+  /* ------------ sky clouds (big, dark dramatic cartoon, for moving layer) ------------ */
   Art.skyCloud = function (ctx, x, y, s, alpha) {
     const a = alpha == null ? 0.75 : alpha;
     ctx.save();
     const lobes = [[0, 0, 1], [-1.1, 0.22, 0.72], [1.1, 0.22, 0.72],
                    [-0.5, -0.36, 0.65], [0.52, -0.32, 0.66],
                    [1.9, 0.35, 0.44], [-1.9, 0.35, 0.44]];
-    // warm amber underside — ground/fire glow reflected in cloud base
-    ctx.globalAlpha = a * 0.30;
-    ctx.fillStyle = "#d89040";
-    ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s + 9, l[2] * s, 0, U.TAU)); ctx.fill();
-    // cool blue-grey shadow
+    // deep shadow base
     ctx.globalAlpha = a;
-    ctx.fillStyle = "#8ca0c4";
-    ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s + 3, l[2] * s, 0, U.TAU)); ctx.fill();
-    // main body
-    ctx.fillStyle = "#ccd8f4";
+    ctx.fillStyle = "#0e1e3a";
+    ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s + 9, l[2] * s, 0, U.TAU)); ctx.fill();
+    // dark blue-grey main body
+    ctx.fillStyle = "#1e3050";
     ctx.beginPath(); lobes.forEach(l => ctx.arc(x + l[0] * s, y + l[1] * s, l[2] * s, 0, U.TAU)); ctx.fill();
-    // bright moonlit highlight
-    ctx.fillStyle = "rgba(255,255,255,0.92)";
-    ctx.beginPath(); ctx.arc(x - 0.18 * s, y - 0.28 * s, s * 0.56, 0, U.TAU); ctx.fill();
+    // bold dark outline
+    ctx.strokeStyle = "#0a1222"; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
+    lobes.forEach(l => { ctx.beginPath(); ctx.arc(x + l[0] * s, y + l[1] * s, l[2] * s, 0, U.TAU); ctx.stroke(); });
+    // moonlit highlight — bright white top catches the moon
+    ctx.fillStyle = "rgba(180,210,255,0.55)";
+    ctx.beginPath(); ctx.arc(x - 0.18 * s, y - 0.30 * s, s * 0.52, 0, U.TAU); ctx.fill();
+    ctx.fillStyle = "rgba(255,255,255,0.88)";
+    ctx.beginPath(); ctx.arc(x - 0.22 * s, y - 0.38 * s, s * 0.28, 0, U.TAU); ctx.fill();
     ctx.restore();
   };
 
